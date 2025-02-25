@@ -1,0 +1,8 @@
+tl t t t t t t t t t t t tr
+ l o o o o o o o o o o o r
+ l o o o o o o o o o o o r
+ l o o o o o o o o o o o r
+ l o o o o o o o o o o o r
+ l o o o o o o o o o o o r
+ l o o o o o o o o o o o r
+bl b b b b b b b b b b b br
