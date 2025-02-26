@@ -16,9 +16,9 @@ class Animation:
         self.animation_type = animation_type
 
     def animation_frame(self):
-        x = (self.cur % (self.lst + 1)) * 32.0
-        y = self.offset * 32.0
-        return Rectangle (float(x), float(y), 32.0, 32.0)
+        y = (self.cur % (self.lst + 1)) * 24.0
+        x = self.offset * 16.0
+        return Rectangle (float(x), float(y), 16.0, 24.0)
     
     def animation_update(self):
         dt = get_frame_time()

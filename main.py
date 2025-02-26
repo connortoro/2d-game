@@ -8,7 +8,7 @@ init_window(1300, 800, "My Game")
 floor = Floor()
 init_window(W, H, "My Game")
 tile_map = load_texture("assets/Free CC0 Top Down Tileset Pixel Art/Tilesets/tileset_blue.png")
-player_texture = load_texture("assets/player_sheet/AnimationSheet_Character.png")
+player_texture = load_texture("assets/player_sheet/8d-character.png")
 player = Player(player_texture)
 #floor = Floor(tile_map)
 
