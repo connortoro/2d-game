@@ -14,6 +14,8 @@ ATTACKING = 3
 #directions
 LEFT = -1
 RIGHT = 1
+UP = 0
+DOWN = 1
 
 class Player:
     def __init__(self, texture):
@@ -50,22 +52,26 @@ class Player:
                 self.vel.y = -300.0
                 self.dir = LEFT
                 self.state = RUNNING 
+
             elif is_key_down(KEY_A) and is_key_down(KEY_S):  #down left
                 self.vel.x = -300.0
                 self.vel.y = 300.0
                 self.dir = LEFT
                 self.state = RUNNING 
+
             elif is_key_down(KEY_D) and is_key_down(KEY_W):  #up right
                 self.vel.x = 300.0
                 self.vel.y = -300.0
                 self.dir = RIGHT
                 self.state = RUNNING 
+
             elif is_key_down(KEY_D) and is_key_down(KEY_S):  #down right
                 self.vel.x = 300.0
                 self.vel.y = 300.0
                 self.dir = RIGHT
                 self.state = RUNNING 
-            #regular horizontal running
+
+            #regular horizontal/vertical running
             elif is_key_down(KEY_A):  #left
                 self.vel.x = -300.0
                 self.dir = LEFT
@@ -74,6 +80,13 @@ class Player:
                 self.vel.x = 300.0
                 self.dir = RIGHT
                 self.state = RUNNING 
+
+            elif is_key_down(KEY_W): #up
+                self.vel.y = -300.0
+                self.state = RUNNING
+            elif is_key_down(KEY_S): #down
+                self.vel.y = 300.0
+                self.state = RUNNING
             else:
                 self.state = IDLE  #idle state when no keys pressed
 
