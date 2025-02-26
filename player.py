@@ -1,11 +1,11 @@
-from pyray import *
+from raylibpy import *
 from enum import Enum
 from animation import Animation, REPEATING, ONESHOT
 import time
 
 #dimensions of space
 W = 1300
-H = 700
+H = 800
 
 LEFT = 0
 RIGHT = 1

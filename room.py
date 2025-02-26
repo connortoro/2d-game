@@ -20,7 +20,7 @@ class Room:
   @classmethod
   def initialize(cls):
       if cls.texture is None:
-          cls.texture = load_texture("assets/textures/textures/tileset_blue.png")
+          cls.texture = load_texture("assets/textures/tileset_blue.png")
 
   def __init__(self, grid):
     if Room.texture is None:

@@ -1,4 +1,4 @@
-from pyray import *
+from raylibpy import *
 
 
 #animation types
