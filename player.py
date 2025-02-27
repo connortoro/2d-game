@@ -9,6 +9,8 @@ H = 800
 
 LEFT = 0
 RIGHT = 1
+UP = 2
+DOWN = 3
 
 class playerState(Enum):
     IDLE = "IDLE"
@@ -25,14 +27,14 @@ class playerState(Enum):
 
 class Player:
     def __init__(self, texture):
-        self.rect = Rectangle(W / 2.0, H / 2.0, 16.0 * 3, 24.0 * 3) # * 3 to increase size of sprite
+        self.rect = Rectangle(W / 2.0, H / 2.0, 16.0 * 4, 24.0 * 4) # * 3 to increase size of sprite
         self.vel = Vector2(0.0, 0.0)
         self.sprite = texture
         self.dir = RIGHT #right
 
         """================================= ANIMATIONS ================================="""
         self.animations = {
-            playerState.IDLE: Animation(2, 2, 2, 4, 0.1, 0.1, REPEATING),
+            playerState.IDLE: Animation(1, 3, 1, 8, 0.2, 0.2, REPEATING),
             playerState.WALKING_UP: Animation(1, 3, 1, 0, 0.1, 0.1, REPEATING),
             playerState.WALKING_DOWN: Animation(1, 3, 1, 4, 0.1, 0.1, REPEATING),
             playerState.WALKING_RIGHT: Animation(1, 3, 1, 2, 0.1, 0.1, REPEATING),
@@ -41,7 +43,6 @@ class Player:
             playerState.WALKING_UP_RIGHT: Animation(1, 3, 1, 1, 0.1, 0.1, REPEATING),
             playerState.WALKING_DOWN_LEFT: Animation(1, 3, 1, 5, 0.1, 0.1, REPEATING),
             playerState.WALKING_DOWN_RIGHT: Animation(1, 3, 1, 3, 0.1, 0.1, REPEATING),
-
         }
         self.state = playerState.IDLE #default state
         self.current_animation = self.animations[self.state] #default animation
@@ -56,91 +57,28 @@ class Player:
         self.vel.x = 0.0
         self.vel.y = 0.0
 
-        if is_key_down(KEY_LEFT_SHIFT):  #running
-            #check for diagonal running (shift + movement keys)
-            if is_key_down(KEY_A) and is_key_down(KEY_W):  #up left
-                self.vel.x = -300.0
-                self.vel.y = -300.0
-                self.dir = LEFT
-                self.state = playerState.WALKING_UP_LEFT
+        speed = 300.0 if is_key_down(KEY_LEFT_SHIFT) else 200.0 #defines speed, increases if shift is pressed
 
-            elif is_key_down(KEY_A) and is_key_down(KEY_S):  #down left
-                self.vel.x = -300.0
-                self.vel.y = 300.0
-                self.dir = LEFT
-                self.state = playerState.WALKING_DOWN_LEFT
+        movement_keys = { #dictionary of movements
+            (KEY_A, KEY_W): (Vector2(-speed, -speed), playerState.WALKING_UP_LEFT, LEFT), #top left
+            (KEY_A, KEY_S): (Vector2(-speed, speed), playerState.WALKING_DOWN_LEFT, LEFT), #bottom left
+            (KEY_D, KEY_W): (Vector2(speed, -speed), playerState.WALKING_UP_RIGHT, RIGHT), #top right
+            (KEY_D, KEY_S): (Vector2(speed, speed), playerState.WALKING_DOWN_RIGHT, RIGHT), #bottom right
+            (KEY_A,): (Vector2(-speed, 0), playerState.WALKING_LEFT, LEFT),  #left
+            (KEY_D,): (Vector2(speed, 0), playerState.WALKING_RIGHT, RIGHT), #right
+            (KEY_W,): (Vector2(0, -speed), playerState.WALKING_UP, UP),  #up
+            (KEY_S,): (Vector2(0, speed), playerState.WALKING_DOWN, DOWN), #down
+        }
 
-            elif is_key_down(KEY_D) and is_key_down(KEY_W):  #up right
-                self.vel.x = 300.0
-                self.vel.y = -300.0
-                self.dir = RIGHT
-                self.state = playerState.WALKING_UP_RIGHT 
+        for keys, (vel, state, direction) in movement_keys.items(): #for each key in movement keys
+            if all(is_key_down(k) for k in keys): #if all keys in a specific movement key are pressed, define the players velocity, state, and direction
+                self.vel = vel
+                self.state = state
+                self.dir = direction
+                break #if condition is met break loop
+        else: #if condition wasn't met, player is idle (no key's pressed)
+            self.state = playerState.IDLE
 
-            elif is_key_down(KEY_D) and is_key_down(KEY_S):  #down right
-                self.vel.x = 300.0
-                self.vel.y = 300.0
-                self.dir = RIGHT
-                self.state = playerState.WALKING_DOWN_RIGHT 
-
-            #regular horizontal/vertical running
-            elif is_key_down(KEY_A):  #left
-                self.vel.x = -300.0
-                self.dir = LEFT
-                self.state = playerState.WALKING_LEFT 
-            elif is_key_down(KEY_D):  #right
-                self.vel.x = 300.0
-                self.dir = RIGHT
-                self.state = playerState.WALKING_RIGHT 
-
-            elif is_key_down(KEY_W): #up
-                self.vel.y = -300.0
-                self.state = playerState.WALKING_UP
-            elif is_key_down(KEY_S): #down
-                self.vel.y = 300.0
-                self.state = playerState.WALKING_DOWN
-            else:
-                self.state = playerState.IDLE  #idle state when no keys pressed
-
-        else:  #walking
-            #check for diagonal walking
-            if is_key_down(KEY_A) and is_key_down(KEY_W):  #up left
-                self.vel.x = -200.0
-                self.vel.y = -200.0
-                self.dir = LEFT
-                self.state = playerState.WALKING_UP_LEFT
-            elif is_key_down(KEY_A) and is_key_down(KEY_S):  # down left
-                self.vel.x = -200.0
-                self.vel.y = 200.0
-                self.dir = LEFT
-                self.state = playerState.WALKING_DOWN_LEFT
-            elif is_key_down(KEY_D) and is_key_down(KEY_W):  # up right
-                self.vel.x = 200.0
-                self.vel.y = -200.0
-                self.dir = RIGHT
-                self.state = playerState.WALKING_UP_RIGHT
-            elif is_key_down(KEY_D) and is_key_down(KEY_S):  # down right
-                self.vel.x = 200.0
-                self.vel.y = 200.0
-                self.dir = RIGHT
-                self.state = playerState.WALKING_DOWN_RIGHT
-            #check for horizontal walking
-            elif is_key_down(KEY_A):  #left
-                self.vel.x = -200.0
-                self.dir = LEFT
-                self.state = playerState.WALKING_LEFT
-            elif is_key_down(KEY_D):  #right
-                self.vel.x = 200.0
-                self.dir = RIGHT
-                self.state = playerState.WALKING_RIGHT
-            #up and down walking
-            elif is_key_down(KEY_W):  #up
-                self.vel.y = -200.0
-                self.state = playerState.WALKING_UP 
-            elif is_key_down(KEY_S):  #down
-                self.vel.y = 200.0
-                self.state = playerState.WALKING_DOWN
-            else:
-                self.state = playerState.IDLE 
 
 
     def update_position(self):
