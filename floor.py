@@ -7,9 +7,5 @@ class Floor:
     self.gen()
 
   def gen(self):
-    grid = []
-    with open("assets/floors/empty.txt") as file:
-      for line in file:
-        grid.append(line.strip().split(" "))
-    self.rooms.append(Room(grid))
+    self.rooms.append(Room("assets/floors/two_blocks.txt"))
 

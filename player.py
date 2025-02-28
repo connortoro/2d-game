@@ -1,6 +1,7 @@
 from raylibpy import *
 from enum import Enum
 from animation import Animation, REPEATING, ONESHOT
+from room import Room
 import time
 
 #dimensions of space
@@ -27,10 +28,19 @@ class playerState(Enum):
 
 class Player:
     def __init__(self, texture):
-        self.rect = Rectangle(W / 2.0, H / 2.0, 16.0 * 4, 24.0 * 4) # * 3 to increase size of sprite
+        self.rect = Rectangle(W / 2.0, H / 2.0, 16.0 * 4.5, 24.0 * 4.5) # * 3 to increase size of sprite
         self.vel = Vector2(0.0, 0.0)
         self.sprite = texture
         self.dir = RIGHT #right
+
+        feet_width = 10.0 * 3  # Make collision box narrower than visual sprite
+        feet_height = 8.0 * 3  # Make collision box shorter, just for feet
+        self.hitbox = Rectangle(
+            self.rect.x + (self.rect.width - feet_width) / 2,  # Center horizontally
+            self.rect.y + self.rect.height - feet_height,      # Position at bottom of sprite
+            feet_width,
+            feet_height
+        )
 
         """================================= ANIMATIONS ================================="""
         self.animations = {
@@ -44,14 +54,23 @@ class Player:
             playerState.WALKING_DOWN_LEFT: Animation(1, 3, 1, 5, 0.1, 0.1, REPEATING),
             playerState.WALKING_DOWN_RIGHT: Animation(1, 3, 1, 3, 0.1, 0.1, REPEATING),
         }
+        
         self.state = playerState.IDLE #default state
         self.current_animation = self.animations[self.state] #default animation
-
+    
+    def update(self, room: Room):
+        self.move()
+        self.check_collisions(room)
+        self.update_position()
+        self.update_animation()
+    
     def draw(self):
         source = self.current_animation.animation_frame() #get current frame
-
         origin = Vector2(0.0, 0.0)
         draw_texture_pro(self.sprite, source, self.rect, origin, 0.0, WHITE)
+
+        #DEBUG
+        # draw_rectangle_lines_ex(self.hitbox, 1, RED) 
 
     def move(self):
         self.vel.x = 0.0
@@ -84,7 +103,43 @@ class Player:
     def update_position(self):
         self.rect.x += self.vel.x * get_frame_time()
         self.rect.y += self.vel.y * get_frame_time()
+        self.hitbox.x = self.rect.x + (self.rect.width - self.hitbox.width) / 2
+        self.hitbox.y = self.rect.y + self.rect.height - self.hitbox.height
 
     def update_animation(self):
         self.current_animation = self.animations[self.state]
-        self.current_animation.animation_update() #updates current animation
+        self.current_animation.animation_update() 
+
+
+    ######## COLLISION CHECKING #########
+    def check_collisions(self, room):
+        self.check_obstacle_collisions(room)
+
+    def check_obstacle_collisions(self, room: Room):
+        for obstacle in room.rectangles:
+            if check_collision_recs(self.hitbox, obstacle):
+
+                # Get overlap x and y
+                #TODO: understand this
+                player_center = Vector2(self.hitbox.x + self.hitbox.width/2, self.hitbox.y + self.hitbox.height/2)
+                obstacle_center = Vector2(obstacle.x + obstacle.width/2, obstacle.y + obstacle.height/2)
+                direction = vector2_subtract(player_center, obstacle_center)
+                player_half_size = Vector2(self.hitbox.width/2, self.hitbox.height/2)
+                obstacle_half_size = Vector2(obstacle.width/2, obstacle.height/2)
+                overlap_x = player_half_size.x + obstacle_half_size.x - abs(direction.x)
+                overlap_y = player_half_size.y + obstacle_half_size.y - abs(direction.y)
+
+                # x-axis collision
+                if overlap_x < overlap_y:
+                    if direction.x > 0: 
+                        self.rect.x += overlap_x # player to right
+                    else:
+                        self.rect.x -= overlap_x # player to left
+                    self.vel.x = 0
+                # y-axis collision
+                else:
+                    if direction.y > 0:
+                        self.rect.y += overlap_y # player above
+                    else:
+                        self.rect.y -= overlap_y # player below
+                    self.vel.y = 0

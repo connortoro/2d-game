@@ -13,17 +13,16 @@ floor = Floor()
 while not window_should_close():
 
     #Updates
-    player.move()
-    player.update_position()
-    player.update_animation()
+    player.update(floor.rooms[0])
+
     #Drawing
     begin_drawing()
     clear_background(SKYBLUE)
-    player.draw()
-    end_drawing()
+
     floor.rooms[0].draw()
-    
-    #end_drawing()
+    player.draw()
+
+    end_drawing()
 unload_texture(player_texture)
 close_window()
 
