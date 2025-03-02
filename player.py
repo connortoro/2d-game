@@ -28,7 +28,8 @@ class playerState(Enum):
 
 class Player:
     def __init__(self, texture):
-        self.rect = Rectangle(W / 2.0, H / 2.0, 16.0 * 4.5, 24.0 * 4.5) # * 3 to increase size of sprite
+        """================================= BASICS ================================="""
+        self.rect = Rectangle(W / 2.0, H / 2.0, 16.0 * 4, 24.0 * 4) # * 4 to increase size of sprite
         self.vel = Vector2(0.0, 0.0)
         self.sprite = texture
         self.dir = RIGHT #right
@@ -44,20 +45,37 @@ class Player:
 
         """================================= ANIMATIONS ================================="""
         self.animations = {
-            playerState.IDLE: Animation(1, 3, 1, 8, 0.2, 0.2, REPEATING),
-            playerState.WALKING_UP: Animation(1, 3, 1, 0, 0.1, 0.1, REPEATING),
-            playerState.WALKING_DOWN: Animation(1, 3, 1, 4, 0.1, 0.1, REPEATING),
-            playerState.WALKING_RIGHT: Animation(1, 3, 1, 2, 0.1, 0.1, REPEATING),
-            playerState.WALKING_LEFT: Animation(1, 3, 1, 6, 0.1, 0.1, REPEATING),
-            playerState.WALKING_UP_LEFT: Animation(1, 3, 1, 7, 0.1, 0.1, REPEATING),
-            playerState.WALKING_UP_RIGHT: Animation(1, 3, 1, 1, 0.1, 0.1, REPEATING),
-            playerState.WALKING_DOWN_LEFT: Animation(1, 3, 1, 5, 0.1, 0.1, REPEATING),
-            playerState.WALKING_DOWN_RIGHT: Animation(1, 3, 1, 3, 0.1, 0.1, REPEATING),
+            playerState.IDLE: Animation(1, 3, 1, 8, 0.2, 0.2, REPEATING, 16, 24),
+            playerState.WALKING_UP: Animation(1, 3, 1, 0, 0.1, 0.1, REPEATING, 16, 24),
+            playerState.WALKING_DOWN: Animation(1, 3, 1, 4, 0.1, 0.1, REPEATING, 16, 24),
+            playerState.WALKING_RIGHT: Animation(1, 3, 1, 2, 0.1, 0.1, REPEATING, 16, 24),
+            playerState.WALKING_LEFT: Animation(1, 3, 1, 6, 0.1, 0.1, REPEATING, 16, 24),
+            playerState.WALKING_UP_LEFT: Animation(1, 3, 1, 7, 0.1, 0.1, REPEATING, 16, 24),
+            playerState.WALKING_UP_RIGHT: Animation(1, 3, 1, 1, 0.1, 0.1, REPEATING, 16, 24),
+            playerState.WALKING_DOWN_LEFT: Animation(1, 3, 1, 5, 0.1, 0.1, REPEATING, 16, 24),
+            playerState.WALKING_DOWN_RIGHT: Animation(1, 3, 1, 3, 0.1, 0.1, REPEATING, 16, 24),
         }
         
         self.state = playerState.IDLE #default state
         self.current_animation = self.animations[self.state] #default animation
     
+        """================================= PLAYER STATS ================================="""
+        self.health = 100
+        self.max_health = 100
+        self.coins = 0
+        self.inventory = []
+        self.position = (0, 0)
+
+        """================================= DAMAGE EFFECTS ================================="""
+        self.damage_timer = 0
+        self.highlight_duration = 0.5 #duration of red highlight over player
+    
+
+
+    def take_damage(self, damage_amount):
+        self.health = max(0, self.health - damage_amount) #take damage
+        self.damage_timer = time.time() #start timer
+
     def update(self, room: Room):
         self.move()
         self.check_collisions(room)
@@ -65,9 +83,15 @@ class Player:
         self.update_animation()
     
     def draw(self):
-        source = self.current_animation.animation_frame() #get current frame
+        source = self.current_animation.animation_frame_vertical() #get current frame
+
         origin = Vector2(0.0, 0.0)
-        draw_texture_pro(self.sprite, source, self.rect, origin, 0.0, WHITE)
+
+        #check if player if damaged
+        if time.time() - self.damage_timer < self.highlight_duration:
+            draw_texture_pro(self.sprite, source, self.rect, origin, 0.0, GRAY)
+        else:
+            draw_texture_pro(self.sprite, source, self.rect, origin, 0.0, WHITE)
 
         #DEBUG
         # draw_rectangle_lines_ex(self.hitbox, 1, RED) 
@@ -173,3 +197,7 @@ class Player:
                     # Update hitbox position again
                     self.hitbox.x = self.rect.x + (self.rect.width - self.hitbox.width) / 2
                     self.hitbox.y = self.rect.y + self.rect.height - self.hitbox.height
+
+    # def update(self):
+    #     if is_key_pressed(KEY_F):
+    #         self.take_damage(10)
