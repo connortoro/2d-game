@@ -6,7 +6,7 @@ REPEATING = 0
 ONESHOT = 1
 
 class Animation:
-    def __init__(self, fst, lst, cur, offset, spd, rem, animation_type):
+    def __init__(self, fst, lst, cur, offset, spd, rem, animation_type, frame_width, frame_height):
         self.fst = fst #first frame
         self.lst = lst #last frame
         self.cur = cur #current frame
@@ -14,11 +14,18 @@ class Animation:
         self.spd = spd #speed of animation
         self.rem = rem #remaining time on frame
         self.animation_type = animation_type
+        self.frame_width = frame_width
+        self.frame_height = frame_height 
 
-    def animation_frame(self):
-        y = (self.cur % (self.lst + 1)) * 24.0
+    def animation_frame_vertical(self): #for vertical sprite sheets
+        y = (self.cur % (self.lst + 1)) * self.frame_height
         x = self.offset * 16.0
-        return Rectangle (float(x), float(y), 16.0, 24.0)
+        return Rectangle (float(x), float(y), float(self.frame_width), float(self.frame_height))
+    
+    def animation_frame_horizontal(self): #for horizontal sprite sheets
+        x = (self.cur % (self.lst + 1)) * self.frame_height
+        y = self.offset * 16.0
+        return Rectangle (float(x), float(y), float(self.frame_width), float(self.frame_height))
     
     def animation_update(self):
         dt = get_frame_time()
