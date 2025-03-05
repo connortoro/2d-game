@@ -15,7 +15,11 @@ UP = 2
 DOWN = 3
 
 class playerState(Enum):
+    """PLAYER STATES"""
     IDLE = "IDLE"
+    DEAD = "DEAD"
+
+    """WALKING STATES"""
     WALKING_UP = "WALKING_UP"
     WALKING_DOWN = "WALKING_DOWN"
     WALKING_LEFT = "WALKING_LEFT"
@@ -34,6 +38,7 @@ class Player:
         self.vel = Vector2(0.0, 0.0)
         self.sprite = texture
         self.dir = RIGHT #right
+        self.death = load_texture("assets/player_sheet/dead.png")
 
         feet_width = 10.0 * 3  # Make collision box narrower than visual sprite
         feet_height = 8.0 * 3  # Make collision box shorter, just for feet
@@ -55,6 +60,7 @@ class Player:
             playerState.WALKING_UP_RIGHT: Animation(1, 3, 1, 1, 0.1, 0.1, REPEATING, 16, 24),
             playerState.WALKING_DOWN_LEFT: Animation(1, 3, 1, 5, 0.1, 0.1, REPEATING, 16, 24),
             playerState.WALKING_DOWN_RIGHT: Animation(1, 3, 1, 3, 0.1, 0.1, REPEATING, 16, 24),
+            playerState.DEAD: Animation(0, 6, 0, 0, 0.1, 0.1, ONESHOT, 64, 64),
         }
         
         self.state = playerState.IDLE #default state
@@ -76,28 +82,46 @@ class Player:
     def take_damage(self, damage_amount):
         self.health = max(0, self.health - damage_amount) #take damage
         self.damage_timer = time.time() #start timer
+        if self.health == 0: #player died
+            self.state = playerState.DEAD  #set player state to dead
 
     def update(self, room: Room):
+        if self.state == playerState.DEAD:
+            self.update_animation()  #run death animation
+            return  #stop updating, player dead
         self.move()
         self.check_collisions(room)
         self.update_position()
         self.update_animation()
     
     def draw(self):
-        source = self.current_animation.animation_frame_vertical() #get current frame
+        #checks if player is dead
+        if self.state == playerState.DEAD:
+            death_rect = Rectangle(self.rect.x, self.rect.y, 64.0 * 2, 64.0 * 2)
+            source = self.current_animation.animation_frame_horizontal()
+            origin = Vector2(0.0, 0.0)
+            
+            draw_texture_pro(self.death, source, death_rect, origin, 0.0, WHITE)
 
-        origin = Vector2(0.0, 0.0)
+        else: #not dead
+            source = self.current_animation.animation_frame_vertical() #get current frame
 
-        #check if player if damaged
-        if time.time() - self.damage_timer < self.highlight_duration:
-            draw_texture_pro(self.sprite, source, self.rect, origin, 0.0, GRAY)
-        else:
-            draw_texture_pro(self.sprite, source, self.rect, origin, 0.0, WHITE)
+            origin = Vector2(0.0, 0.0)
 
-        #DEBUG
-        # draw_rectangle_lines_ex(self.hitbox, 1, RED) 
+            #check if player if damaged
+            if time.time() - self.damage_timer < self.highlight_duration:
+                draw_texture_pro(self.sprite, source, self.rect, origin, 0.0, GRAY)
+            else:
+                draw_texture_pro(self.sprite, source, self.rect, origin, 0.0, WHITE)
+
+            #DEBUG
+            draw_rectangle_lines_ex(self.hitbox, 1, RED) 
 
     def move(self):
+
+        if self.state == playerState.DEAD:  
+            return  # prevent movement when dead
+        
         self.vel.x = 0.0
         self.vel.y = 0.0
 
