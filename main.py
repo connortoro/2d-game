@@ -15,6 +15,7 @@ floor = Floor()
 while not window_should_close():
     #Updates
     player.update(floor.rooms[0])
+    floor.rooms[0].update()
     playerui.update()
 
     #Drawing

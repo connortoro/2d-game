@@ -7,5 +7,5 @@ class Floor:
     self.gen()
 
   def gen(self):
-    self.rooms.append(Room("assets/floors/two_blocks.txt"))
+    self.rooms.append(Room("assets/floors/1/obstacles.txt", "assets/floors/1/enemies.txt"))
 
