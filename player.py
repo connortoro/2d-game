@@ -3,6 +3,7 @@ from enum import Enum
 from animation import Animation, REPEATING, ONESHOT
 from room import Room
 import time
+from collisions import *
 
 #dimensions of space
 W = 1300
@@ -68,7 +69,7 @@ class Player:
 
         """================================= DAMAGE EFFECTS ================================="""
         self.damage_timer = 0
-        self.highlight_duration = 0.5 #duration of red highlight over player
+        self.highlight_duration = 0.7 #duration of red highlight over player
     
 
 
@@ -122,8 +123,6 @@ class Player:
         else: #if condition wasn't met, player is idle (no key's pressed)
             self.state = playerState.IDLE
 
-
-
     def update_position(self):
         self.rect.x += self.vel.x * get_frame_time()
         self.rect.y += self.vel.y * get_frame_time()
@@ -134,70 +133,7 @@ class Player:
         self.current_animation = self.animations[self.state]
         self.current_animation.animation_update() 
 
-
-    ######## COLLISION CHECKING #########
-    def check_collisions(self, room):
-        self.check_obstacle_collisions(room)
-
-    def check_obstacle_collisions(self, room: Room):
-        for obstacle in room.rectangles:
-            if check_collision_recs(self.hitbox, obstacle):
-                # Calculate centers
-                player_center = Vector2(self.hitbox.x + self.hitbox.width/2, self.hitbox.y + self.hitbox.height/2)
-                obstacle_center = Vector2(obstacle.x + obstacle.width/2, obstacle.y + obstacle.height/2)
-                
-                # Vector from obstacle center to player center
-                direction = vector2_subtract(player_center, obstacle_center)
-                
-                # Half sizes of each rectangle
-                player_half_size = Vector2(self.hitbox.width/2, self.hitbox.height/2)
-                obstacle_half_size = Vector2(obstacle.width/2, obstacle.height/2)
-                
-                # Calculate overlap on each axis
-                overlap_x = player_half_size.x + obstacle_half_size.x - abs(direction.x)
-                overlap_y = player_half_size.y + obstacle_half_size.y - abs(direction.y)
-
-                # Add a small buffer to prevent getting stuck
-                buffer = 1.0
-                
-                # Resolve collision based on smallest overlap
-                if overlap_x < overlap_y:
-                    if direction.x > 0:  # player to right of obstacle
-                        self.rect.x += overlap_x + buffer
-                    else:  # player to left of obstacle
-                        self.rect.x -= overlap_x + buffer
-                    self.vel.x = 0
-                else:
-                    if direction.y > 0:  # player above obstacle
-                        self.rect.y += overlap_y + buffer
-                    else:  # player below obstacle
-                        self.rect.y -= overlap_y + buffer
-                    self.vel.y = 0
-                
-                # Update hitbox position immediately
-                self.hitbox.x = self.rect.x + (self.rect.width - self.hitbox.width) / 2
-                self.hitbox.y = self.rect.y + self.rect.height - self.hitbox.height
-                
-                # Check if still colliding after adjustment (could happen at corners)
-                if check_collision_recs(self.hitbox, obstacle):
-                    # If still colliding, apply correction on the other axis too
-                    if overlap_x < overlap_y:
-                        if direction.y > 0:  # player above obstacle
-                            self.rect.y += overlap_y + buffer
-                        else:  # player below obstacle
-                            self.rect.y -= overlap_y + buffer
-                        self.vel.y = 0
-                    else:
-                        if direction.x > 0:  # player to right of obstacle
-                            self.rect.x += overlap_x + buffer
-                        else:  # player to left of obstacle
-                            self.rect.x -= overlap_x + buffer
-                        self.vel.x = 0
-                    
-                    # Update hitbox position again
-                    self.hitbox.x = self.rect.x + (self.rect.width - self.hitbox.width) / 2
-                    self.hitbox.y = self.rect.y + self.rect.height - self.hitbox.height
-
-    # def update(self):
-    #     if is_key_pressed(KEY_F):
-    #         self.take_damage(10)
+    def check_collisions(self, room: Room):
+        check_obstacle_collisions(self, room.rectangles)
+        if not time.time() - self.damage_timer < self.highlight_duration:
+            check_enemy_collisions(self, room.enemies)
