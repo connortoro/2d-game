@@ -1,9 +1,12 @@
 from raylibpy import *
 
-def check_enemy_collisions(self, enemies):
+def check_enemy_collisions(player, enemies):
     for enemy in enemies:
-        if check_collision_recs(enemy.hitbox, self.hitbox):
-            self.take_damage(10)
+        if not enemy.is_alive:
+            continue  # Skip dead enemies
+
+        if check_collision_recs(player.hitbox, enemy.hitbox):
+            player.take_damage(10)  # Example: Player takes 10 damage
 
 
 def check_obstacle_collisions(self, obstacles):
