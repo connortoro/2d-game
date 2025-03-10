@@ -123,13 +123,13 @@ class Player:
                 draw_texture_pro(self.sprite, source, self.rect, origin, 0.0, WHITE)
 
             # DEBUG
-            draw_rectangle_lines_ex(self.hitbox, 1, RED)
+            #draw_rectangle_lines_ex(self.hitbox, 1, RED)
 
         # Draw reticle
         self.draw_reticle()
 
         # Draw attack arc
-        self.draw_attack_arc()
+        #self.draw_attack_arc()
 
     def move(self):
         if self.state == playerState.DEAD:
