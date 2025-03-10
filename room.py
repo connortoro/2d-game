@@ -64,9 +64,9 @@ class Room:
         self.enemy_grid.append(line.strip().split())
     self.gen_enemies()
 
-  def update(self):
+  def update(self, player):
     for enemy in self.enemies:
-      enemy.update()
+      enemy.update(player, self.rectangles)
 
   def draw(self):
     self.draw_empty_room()
@@ -106,7 +106,7 @@ class Room:
     for y, row in enumerate(self.enemy_grid):
       for x, tile_char in enumerate(row):
         if tile_char == '1':
-          enemy = Enemy("assets/enemy_sheets/LV1_BOSS.png", x * self.scale, y * self.scale)
+          enemy = Enemy("assets/enemy_sheets/LV1_BOSS.png", x * self.scale, y * self.scale, 130)
           self.enemies.append(enemy)
           
 
