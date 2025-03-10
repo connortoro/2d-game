@@ -15,6 +15,7 @@ class Enemy:
         self.animation = Animation(0, 3, 1, 0, 0.2, 0.2, REPEATING, 32, 32)
         self.hitbox = Rectangle(self.rect.x + (self.rect.width - 90) / 2, self.rect.y + self.rect.height - 60, 90, 60)
         self.health = 100  # Add health attribute
+        self.maxHealth = 100
         self.is_alive = True  # Flag to track if the enemy is alive
         self.is_dying = False  # Flag to track if the enemy is in the process of dying
         self.death_animation = None  # Placeholder for death animation
@@ -58,11 +59,18 @@ class Enemy:
             draw_rectangle_rec(self.rect, RED)  # Example: Draw a red rectangle as a placeholder
         else:
             # Draw normal animation
+            self.draw_health_bar()
             source = self.animation.animation_frame_horizontal()
             origin = Vector2(0.0, 0.0)
             draw_texture_pro(self.sheet, source, self.rect, origin, 0.0, WHITE)
         
-        draw_rectangle_lines_ex(self.hitbox, 1, RED)
+        #draw_rectangle_lines_ex(self.hitbox, 1, RED)
+    
+    def draw_health_bar(self):
+        draw_rectangle(self.rect.x+25, self.rect.y+4, 80, 5, RED)
+        ratio = self.health/self.maxHealth
+        draw_rectangle(self.rect.x+25, self.rect.y+4, 80*ratio, 5, GREEN)
+
 
     def take_damage(self, damage):
         self.health -= damage
