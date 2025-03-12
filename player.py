@@ -38,6 +38,7 @@ class Player:
         self.sprite = texture
         self.dir = RIGHT  # right
         self.death = load_texture("assets/player_sheet/dead.png")
+        self.sword = load_texture("assets/textures/sword.png")
 
         feet_width = 10.0 * 3  # Make collision box narrower than visual sprite
         feet_height = 8.0 * 3  # Make collision box shorter, just for feet
@@ -77,6 +78,8 @@ class Player:
         self.highlight_duration = 0.7  # duration of red highlight over player
 
         """================================= ATTACK MECHANIC ================================="""
+        self.attack_timer = 0
+        self.attack_cooldown = 0.6
         self.reticle_angle = 0  # Angle of the reticle (in radians)
         self.attack_range = 150  # Range of the attack
         self.attack_angle = 90  # Angle of the attack arc (in degrees)
@@ -100,8 +103,11 @@ class Player:
         self.update_reticle()
 
         # Check for attack input (left mouse button)
-        if is_mouse_button_pressed(MOUSE_LEFT_BUTTON):
+        if self.attack_timer > 0:
+            self.attack_timer -= get_frame_time()
+        elif is_mouse_button_pressed(MOUSE_LEFT_BUTTON):
             self.perform_attack(room.enemies)
+            self.attack_timer = self.attack_cooldown
 
     def draw(self):
         # checks if player is dead
@@ -109,27 +115,21 @@ class Player:
             death_rect = Rectangle(self.rect.x, self.rect.y, 64.0 * 2, 64.0 * 2)
             source = self.current_animation.animation_frame_horizontal()
             origin = Vector2(0.0, 0.0)
-
             draw_texture_pro(self.death, source, death_rect, origin, 0.0, WHITE)
 
         else:  # not dead
-            source = self.current_animation.animation_frame_vertical()  # get current frame
+            source = self.current_animation.animation_frame_vertical() 
             origin = Vector2(0.0, 0.0)
-
             # check if player is damaged
             if time.time() - self.damage_timer < self.highlight_duration:
                 draw_texture_pro(self.sprite, source, self.rect, origin, 0.0, GRAY)
             else:
                 draw_texture_pro(self.sprite, source, self.rect, origin, 0.0, WHITE)
-
-            # DEBUG
             #draw_rectangle_lines_ex(self.hitbox, 1, RED)
-
-        # Draw reticle
         self.draw_reticle()
-
-        # Draw attack arc
         #self.draw_attack_arc()
+        if self.attack_timer > .3:
+            self.draw_sword()
 
     def move(self):
         if self.state == playerState.DEAD:
@@ -176,6 +176,22 @@ class Player:
             check_enemy_collisions(self, room.enemies)
 
     """================================= ATTACK MECHANIC ================================="""
+
+    def draw_sword(self):
+        mouse_pos = get_mouse_position()
+        dx = mouse_pos.x - (self.rect.x + self.rect.width / 2)
+        dy = mouse_pos.y - (self.rect.y + self.rect.height / 2)
+        vec = (vector2_scale(vector2_normalize(Vector2(dx, dy)), 20))
+        
+        source = Rectangle(0, 0, 160, 160)
+        dest = Rectangle(vec.x + self.rect.x + 32, vec.y + self.rect.y + 48, 50, 50)
+        
+        origin = Vector2(10, 40)
+        angle = math.atan2(dy, dx) * 180 / math.pi + 160
+        dt = ((.7 - self.attack_timer) / .4) * 160
+        angle -= dt
+
+        draw_texture_pro(self.sword, source, dest, origin, angle, WHITE)
 
     def update_reticle(self):
         # Update reticle angle based on mouse position
