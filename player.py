@@ -4,7 +4,7 @@ from animation import Animation, REPEATING, ONESHOT
 from room import Room  # Import the Room class
 import time
 import math
-from collisions import *
+from collisions import check_collision_recs, Vector2Normalize  # Import the custom collision function
 
 # Dimensions of space
 W = 1300
@@ -35,10 +35,10 @@ class Player:
         """================================= BASICS ================================="""
         self.rect = Rectangle(W / 2.0, H / 2.0, 16.0 * 4, 24.0 * 4)  # * 4 to increase size of sprite
         self.vel = Vector2(0.0, 0.0)
+        self.knockback_vel = Vector2(0.0, 0.0)  # Add knockback velocity
         self.sprite = texture
         self.dir = RIGHT  # right
         self.death = load_texture("assets/player_sheet/dead.png")
-        self.sword = load_texture("assets/textures/sword.png")
 
         feet_width = 10.0 * 3  # Make collision box narrower than visual sprite
         feet_height = 8.0 * 3  # Make collision box shorter, just for feet
@@ -78,24 +78,28 @@ class Player:
         self.highlight_duration = 0.7  # duration of red highlight over player
 
         """================================= ATTACK MECHANIC ================================="""
-        self.attack_timer = 0
-        self.attack_cooldown = 0.6
         self.reticle_angle = 0  # Angle of the reticle (in radians)
         self.attack_range = 150  # Range of the attack
         self.attack_angle = 90  # Angle of the attack arc (in degrees)
         self.reticle_distance = 60  # Distance of the reticle from the player
         self.reticle_color = Color(255, 0, 0, 150)  # Semi-transparent red
 
-    def take_damage(self, damage_amount):
-        self.health = max(0, self.health - damage_amount)  # take damage
-        self.damage_timer = time.time()  # start timer
-        if self.health == 0:  # player died
-            self.state = playerState.DEAD  # set player state to dead
+    def take_damage(self, damage_amount, damage_direction: Vector2):
+        """Apply damage and knockback to the player."""
+        self.health = max(0, self.health - damage_amount)  # Take damage
+        self.damage_timer = time.time()  # Start timer
+
+        # Apply knockback in the opposite direction of the damage source
+        knockback_strength = 2000.0  # Adjust this value to control the distance of knockback
+        self.knockback_vel = Vector2(-damage_direction.x * knockback_strength, -damage_direction.y * knockback_strength)
+
+        if self.health == 0:  # Player died
+            self.state = playerState.DEAD  # Set player state to dead
 
     def update(self, room: Room):
         if self.state == playerState.DEAD:
-            self.update_animation()  # run death animation
-            return  # stop updating, player dead
+            self.update_animation()  # Run death animation
+            return  # Stop updating, player dead
         self.move()
         self.check_collisions(room)
         self.update_position()
@@ -103,66 +107,86 @@ class Player:
         self.update_reticle()
 
         # Check for attack input (left mouse button)
-        if self.attack_timer > 0:
-            self.attack_timer -= get_frame_time()
-        elif is_mouse_button_pressed(MOUSE_LEFT_BUTTON):
+        if is_mouse_button_pressed(MOUSE_LEFT_BUTTON):
             self.perform_attack(room.enemies)
-            self.attack_timer = self.attack_cooldown
 
     def draw(self):
-        # checks if player is dead
+        # Checks if player is dead
         if self.state == playerState.DEAD:
             death_rect = Rectangle(self.rect.x, self.rect.y, 64.0 * 2, 64.0 * 2)
             source = self.current_animation.animation_frame_horizontal()
             origin = Vector2(0.0, 0.0)
+
             draw_texture_pro(self.death, source, death_rect, origin, 0.0, WHITE)
 
-        else:  # not dead
-            source = self.current_animation.animation_frame_vertical() 
+        else:  # Not dead
+            source = self.current_animation.animation_frame_vertical()  # Get current frame
             origin = Vector2(0.0, 0.0)
-            # check if player is damaged
+
+            # Check if player is damaged
             if time.time() - self.damage_timer < self.highlight_duration:
                 draw_texture_pro(self.sprite, source, self.rect, origin, 0.0, GRAY)
             else:
                 draw_texture_pro(self.sprite, source, self.rect, origin, 0.0, WHITE)
+
+            # DEBUG
             #draw_rectangle_lines_ex(self.hitbox, 1, RED)
+
+        # Draw reticle
         self.draw_reticle()
+
+        # Draw attack arc
         #self.draw_attack_arc()
-        if self.attack_timer > .3:
-            self.draw_sword()
 
     def move(self):
         if self.state == playerState.DEAD:
-            return  # prevent movement when dead
+            return  # Prevent movement when dead
 
         self.vel.x = 0.0
         self.vel.y = 0.0
 
-        speed = 300.0 if is_key_down(KEY_LEFT_SHIFT) else 200.0  # defines speed, increases if shift is pressed
+        speed = 300.0 if is_key_down(KEY_LEFT_SHIFT) else 200.0  # Defines speed, increases if shift is pressed
 
-        movement_keys = {  # dictionary of movements
-            (KEY_A, KEY_W): (Vector2(-speed, -speed), playerState.WALKING_UP_LEFT, LEFT),  # top left
-            (KEY_A, KEY_S): (Vector2(-speed, speed), playerState.WALKING_DOWN_LEFT, LEFT),  # bottom left
-            (KEY_D, KEY_W): (Vector2(speed, -speed), playerState.WALKING_UP_RIGHT, RIGHT),  # top right
-            (KEY_D, KEY_S): (Vector2(speed, speed), playerState.WALKING_DOWN_RIGHT, RIGHT),  # bottom right
-            (KEY_A,): (Vector2(-speed, 0), playerState.WALKING_LEFT, LEFT),  # left
-            (KEY_D,): (Vector2(speed, 0), playerState.WALKING_RIGHT, RIGHT),  # right
-            (KEY_W,): (Vector2(0, -speed), playerState.WALKING_UP, UP),  # up
-            (KEY_S,): (Vector2(0, speed), playerState.WALKING_DOWN, DOWN),  # down
+        movement_keys = {  # Dictionary of movements
+            (KEY_A, KEY_W): (Vector2(-speed, -speed), playerState.WALKING_UP_LEFT, LEFT),  # Top left
+            (KEY_A, KEY_S): (Vector2(-speed, speed), playerState.WALKING_DOWN_LEFT, LEFT),  # Bottom left
+            (KEY_D, KEY_W): (Vector2(speed, -speed), playerState.WALKING_UP_RIGHT, RIGHT),  # Top right
+            (KEY_D, KEY_S): (Vector2(speed, speed), playerState.WALKING_DOWN_RIGHT, RIGHT),  # Bottom right
+            (KEY_A,): (Vector2(-speed, 0), playerState.WALKING_LEFT, LEFT),  # Left
+            (KEY_D,): (Vector2(speed, 0), playerState.WALKING_RIGHT, RIGHT),  # Right
+            (KEY_W,): (Vector2(0, -speed), playerState.WALKING_UP, UP),  # Up
+            (KEY_S,): (Vector2(0, speed), playerState.WALKING_DOWN, DOWN),  # Down
         }
 
-        for keys, (vel, state, direction) in movement_keys.items():  # for each key in movement keys
-            if all(is_key_down(k) for k in keys):  # if all keys in a specific movement key are pressed, define the players velocity, state, and direction
+        for keys, (vel, state, direction) in movement_keys.items():  # For each key in movement keys
+            if all(is_key_down(k) for k in keys):  # If all keys in a specific movement key are pressed, define the players velocity, state, and direction
                 self.vel = vel
                 self.state = state
                 self.dir = direction
-                break  # if condition is met break loop
-        else:  # if condition wasn't met, player is idle (no key's pressed)
+                break  # If condition is met break loop
+        else:  # If condition wasn't met, player is idle (no key's pressed)
             self.state = playerState.IDLE
 
     def update_position(self):
-        self.rect.x += self.vel.x * get_frame_time()
-        self.rect.y += self.vel.y * get_frame_time()
+        """Update player position, including knockback."""
+        # Combine movement and knockback velocities
+        total_vel = Vector2(self.vel.x + self.knockback_vel.x, self.vel.y + self.knockback_vel.y)
+
+        # Update position based on total velocity
+        self.rect.x += total_vel.x * get_frame_time()
+        self.rect.y += total_vel.y * get_frame_time()
+
+        # Gradually reduce knockback velocity (simulate decay)
+        self.knockback_vel.x *= 0.9  # Adjust this value to control how quickly the knockback decays
+        self.knockback_vel.y *= 0.9
+
+        # Stop knockback if it becomes too small
+        if abs(self.knockback_vel.x) < 1.0:
+            self.knockback_vel.x = 0.0
+        if abs(self.knockback_vel.y) < 1.0:
+            self.knockback_vel.y = 0.0
+
+        # Update hitbox position
         self.hitbox.x = self.rect.x + (self.rect.width - self.hitbox.width) / 2
         self.hitbox.y = self.rect.y + self.rect.height - self.hitbox.height
 
@@ -171,27 +195,57 @@ class Player:
         self.current_animation.animation_update()
 
     def check_collisions(self, room: Room):
-        check_obstacle_collisions(self, room.rectangles)
+        """Check collisions with obstacles and enemies."""
+        # Check collisions with obstacles (terrain)
+        for obstacle in room.rectangles:
+            if check_collision_recs(self.hitbox, obstacle):
+                # Calculate centers
+                player_center = Vector2(self.hitbox.x + self.hitbox.width / 2, self.hitbox.y + self.hitbox.height / 2)
+                obstacle_center = Vector2(obstacle.x + obstacle.width / 2, obstacle.y + obstacle.height / 2)
+
+                # Vector from obstacle center to player center
+                direction = Vector2(player_center.x - obstacle_center.x, player_center.y - obstacle_center.y)
+
+                # Half sizes of each rectangle
+                player_half_size = Vector2(self.hitbox.width / 2, self.hitbox.height / 2)
+                obstacle_half_size = Vector2(obstacle.width / 2, obstacle.height / 2)
+
+                # Calculate overlap on each axis
+                overlap_x = player_half_size.x + obstacle_half_size.x - abs(direction.x)
+                overlap_y = player_half_size.y + obstacle_half_size.y - abs(direction.y)
+
+                # Add a small buffer to prevent getting stuck
+                buffer = 1.0
+
+                # Resolve collision based on smallest overlap
+                if overlap_x < overlap_y:
+                    if direction.x > 0:  # player to right of obstacle
+                        self.rect.x += overlap_x + buffer
+                    else:  # player to left of obstacle
+                        self.rect.x -= overlap_x + buffer
+                    self.vel.x = 0  # Stop horizontal movement
+                else:
+                    if direction.y > 0:  # player above obstacle
+                        self.rect.y += overlap_y + buffer
+                    else:  # player below obstacle
+                        self.rect.y -= overlap_y + buffer
+                    self.vel.y = 0  # Stop vertical movement
+
+                # Update hitbox position immediately
+                self.hitbox.x = self.rect.x + (self.rect.width - self.hitbox.width) / 2
+                self.hitbox.y = self.rect.y + self.rect.height - self.hitbox.height
+
+        # Check collisions with enemies (if not recently damaged)
         if not time.time() - self.damage_timer < self.highlight_duration:
-            check_enemy_collisions(self, room.enemies)
+            for enemy in room.enemies:
+                if check_collision_recs(self.hitbox, enemy.hitbox):
+                    # Calculate damage direction (from enemy to player)
+                    damage_direction = Vector2(self.rect.x - enemy.rect.x, self.rect.y - enemy.rect.y)
+                    damage_direction = Vector2Normalize(-damage_direction)  # Knockback direction when hit
 
+                    # Apply damage to the player
+                    self.take_damage(10, damage_direction)  # Pass both damage_amount and damage_direction
     """================================= ATTACK MECHANIC ================================="""
-
-    def draw_sword(self):
-        mouse_pos = get_mouse_position()
-        dx = mouse_pos.x - (self.rect.x + self.rect.width / 2)
-        dy = mouse_pos.y - (self.rect.y + self.rect.height / 2)
-        vec = (vector2_scale(vector2_normalize(Vector2(dx, dy)), 20))
-        
-        source = Rectangle(0, 0, 160, 160)
-        dest = Rectangle(vec.x + self.rect.x + 32, vec.y + self.rect.y + 48, 50, 50)
-        
-        origin = Vector2(10, 40)
-        angle = math.atan2(dy, dx) * 180 / math.pi + 160
-        dt = ((.7 - self.attack_timer) / .4) * 160
-        angle -= dt
-
-        draw_texture_pro(self.sword, source, dest, origin, angle, WHITE)
 
     def update_reticle(self):
         # Update reticle angle based on mouse position
@@ -201,46 +255,35 @@ class Player:
         self.reticle_angle = math.atan2(dy, dx)
 
     def draw_reticle(self):
-        # Draw reticle (triangle) at the calculated position
+        # Calculate the position of the reticle
         reticle_pos = Vector2(
             self.rect.x + self.rect.width / 2 + math.cos(self.reticle_angle) * self.reticle_distance,
             self.rect.y + self.rect.height / 2 + math.sin(self.reticle_angle) * self.reticle_distance
         )
-        draw_triangle(
-            Vector2(reticle_pos.x + 10, reticle_pos.y),
-            Vector2(reticle_pos.x - 10, reticle_pos.y - 10),
-            Vector2(reticle_pos.x - 10, reticle_pos.y + 10),
-            self.reticle_color  # Use semi-transparent color
+
+        # Define the triangle points (relative to the reticle position)
+        size = 10  # Size of the triangle
+        point1 = Vector2(size, 0)  # Tip of the triangle
+        point2 = Vector2(-size, -size)  # Bottom-left corner
+        point3 = Vector2(-size, size)  # Bottom-right corner
+
+        # Rotate the triangle points around the reticle position
+        angle = self.reticle_angle  # Angle in radians
+        rotated_point1 = Vector2(
+            reticle_pos.x + point1.x * math.cos(angle) - point1.y * math.sin(angle),
+            reticle_pos.y + point1.x * math.sin(angle) + point1.y * math.cos(angle)
+        )
+        rotated_point2 = Vector2(
+            reticle_pos.x + point2.x * math.cos(angle) - point2.y * math.sin(angle),
+            reticle_pos.y + point2.x * math.sin(angle) + point2.y * math.cos(angle)
+        )
+        rotated_point3 = Vector2(
+            reticle_pos.x + point3.x * math.cos(angle) - point3.y * math.sin(angle),
+            reticle_pos.y + point3.x * math.sin(angle) + point3.y * math.cos(angle)
         )
 
-    def draw_attack_arc(self):
-        # Define the arc's start and end angles
-        start_angle = self.reticle_angle - math.radians(self.attack_angle / 2)
-        end_angle = self.reticle_angle + math.radians(self.attack_angle / 2)
-
-        # Draw a rectangle to represent the attack range
-        draw_rectangle(
-            int(self.rect.x + self.rect.width / 2 - self.attack_range),  # Top-left x
-            int(self.rect.y + self.rect.height / 2 - self.attack_range),  # Top-left y
-            int(self.attack_range * 2),  # Width
-            int(self.attack_range * 2),  # Height
-            Color(255, 0, 0, 50)  # Semi-transparent red
-        )
-
-        # Draw lines to represent the attack arc
-        center = Vector2(self.rect.x + self.rect.width / 2, self.rect.y + self.rect.height / 2)
-        start_pos = Vector2(
-            center.x + math.cos(start_angle) * self.attack_range,
-            center.y + math.sin(start_angle) * self.attack_range
-        )
-        end_pos = Vector2(
-            center.x + math.cos(end_angle) * self.attack_range,
-            center.y + math.sin(end_angle) * self.attack_range
-        )
-
-        # Draw the lines
-        draw_line_v(center, start_pos, RED)
-        draw_line_v(center, end_pos, RED)
+        # Draw the rotated triangle
+        draw_triangle(rotated_point1, rotated_point2, rotated_point3, self.reticle_color)
 
     def perform_attack(self, enemies):
         # Check which enemies are within the attack arc

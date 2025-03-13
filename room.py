@@ -56,8 +56,11 @@ class Room:
         self.gen_enemies()
 
     def update(self, player):
-        for enemy in self.enemies:
+        """Update all enemies in the room and remove dead ones."""
+        for enemy in self.enemies[:]:  # Iterate over a copy of the list
             enemy.update(player, self.rectangles)
+            if not enemy.is_alive:  # Check if the enemy is dead
+                self.enemies.remove(enemy)  # Remove the enemy from the list
 
     def draw(self):
         self.draw_empty_room()
