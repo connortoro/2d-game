@@ -14,14 +14,14 @@ floor = Floor()
 
 while not window_should_close():
     #Updates
-    player.update(floor.rooms[0])
-    floor.rooms[0].update(player)
+    player.update(floor.get_current_room())
+    floor.update(player)
     playerui.update()
 
     #Drawing
     begin_drawing()
     clear_background(SKYBLUE)
-    floor.rooms[0].draw()
+    floor.draw()
     player.draw()
     playerui.draw_health_bar()
     playerui.draw_inventory_bar()
