@@ -1,5 +1,6 @@
 from raylibpy import *
 from enemy import Enemy
+from animation import Animation, REPEATING, ONESHOT
 
 class Room:
     texture = None
@@ -17,7 +18,8 @@ class Room:
         'br': (3, 4),
         'o': (1, 1),
         'b': (1, 4),
-        'x': (2, 3)
+        'x': (2, 3),
+        's': (7, 1),
     }
 
     door_key = {
@@ -58,6 +60,7 @@ class Room:
         self.door_string = door_string
         self.doors = []
         self.rectangles = []
+        self.spikes = []
         self.object_grid = []
         with open(obstacles_path) as file:
             for line in file:
@@ -117,6 +120,9 @@ class Room:
                 if tile_char == 'x':
                     rect = Rectangle(x * self.scale, y * self.scale, self.scale, self.scale)
                     self.rectangles.append(rect)
+                if tile_char == 's':
+                    rect = Rectangle(x * self.scale, y * self.scale, self.scale, self.scale)
+                    self.spikes.append(rect)
         for dir in self.door_string:
             x, y = self.door_dest[dir]
             if dir == "N" or dir == "S":
@@ -128,6 +134,27 @@ class Room:
     def gen_enemies(self):
         for y, row in enumerate(self.enemy_grid):
             for x, tile_char in enumerate(row):
+
                 if tile_char == '1':
-                    enemy = Enemy("assets/enemy_sheets/LV1_BOSS.png", x * self.scale, y * self.scale, 100)
+                    animation = Animation(0, 3, 1, 0, 16, 0.2, 0.2, REPEATING, 32, 32)
+                    death_animation = Animation(0, 5, 1, 8, 16, .2, .2, ONESHOT, 32, 32)
+                    enemy = Enemy("assets/enemy_sheets/LV1_BOSS.png", x * self.scale, y * self.scale, 70, 120, 30, animation, death_animation)
+                    self.enemies.append(enemy)
+
+                if tile_char == '2':
+                    animation = Animation(0, 3, 1, 0, 16, 0.2, 0.2, REPEATING, 32, 32)
+                    death_animation = Animation(0, 4, 1, 10, 16, .2, .2, ONESHOT, 32, 32)
+                    enemy = Enemy("assets/enemy_sheets/MINION_1.png", x * self.scale, y * self.scale, 20, 200, 8, animation, death_animation)
+                    self.enemies.append(enemy)
+
+                if tile_char == '3':
+                    animation = Animation(0, 3, 1, 0, 16, 0.2, 0.2, REPEATING, 32, 32)
+                    death_animation = Animation(0, 4, 1, 10, 16, .2, .2, ONESHOT, 32, 32)
+                    enemy = Enemy("assets/enemy_sheets/MINION_3.png", x * self.scale, y * self.scale, 30, 135, 13, animation, death_animation)
+                    self.enemies.append(enemy)
+
+                if tile_char == '4':
+                    animation = Animation(0, 3, 1, 0, 16, 0.2, 0.2, REPEATING, 32, 32)
+                    death_animation = Animation(0, 4, 1, 10, 16, .2, .2, ONESHOT, 32, 32)
+                    enemy = Enemy("assets/enemy_sheets/MINION_4.png", x * self.scale, y * self.scale, 40, 110, 20, animation, death_animation)
                     self.enemies.append(enemy)

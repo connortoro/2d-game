@@ -7,15 +7,17 @@ class Enemy:
     H = 32
     SCALE = 4
 
-    def __init__(self, sheet, x, y, speed):
+    def __init__(self, sheet, x, y, hp, speed, dmg, animation, death_animation):
         self.sheet = load_texture(sheet)
         self.vel = Vector2(0.0, 0.0)
+        self.dmg = dmg
         self.speed = speed
         self.rect = Rectangle(x, y, self.W * self.SCALE, self.H * self.SCALE)
-        self.animation = Animation(0, 3, 1, 0, 16, 0.2, 0.2, REPEATING, 32, 32)
+        self.animation = animation
+        self.death_animation = death_animation
         self.hitbox = Rectangle(self.rect.x + (self.rect.width - 90) / 2, self.rect.y + self.rect.height - 60, 90, 60)
-        self.health = 20  # Add health attribute
-        self.maxHealth = 20
+        self.health = hp  # Add health attribute
+        self.maxHealth = self.health
         self.is_alive = True  # Flag to track if the enemy is alive
         self.is_dying = False  # Flag to track if the enemy is in the process of dying
         self.death_timer = 1
@@ -82,4 +84,4 @@ class Enemy:
             self.is_dying = True  # Start death process
 
     def start_death_animation(self):
-        self.animation = Animation(0, 5, 1, 8, 16, .2, .2, ONESHOT, 32, 32)
+        self.animation = self.death_animation
