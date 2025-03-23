@@ -121,7 +121,9 @@ class Room:
             x, y = self.door_dest[dir]
             if dir == "N" or dir == "S":
                 x += .3
-            self.doors.append(Rectangle(x*self.scale - 10, y*self.scale + 30, 40, 40))
+                self.doors.append(Rectangle(x*self.scale - 10, y*self.scale + 30, 40, 40))
+            else:
+                self.doors.append(Rectangle(x*self.scale - 10, y*self.scale + 30, 40, 80))
 
     def gen_enemies(self):
         for y, row in enumerate(self.enemy_grid):

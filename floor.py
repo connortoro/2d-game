@@ -68,8 +68,8 @@ class Floor:
         elif player.rect.x < 200:
           y, x = self.pos
           self.pos = (y, x-1)
-          player.rect.x = 80
+          player.rect.x = 1180
         else:
           y, x = self.pos
           self.pos = (y, x+1)
-          player.rect.x = 1000
+          player.rect.x = 40
