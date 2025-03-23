@@ -3,11 +3,41 @@ from player import Player, W, H
 from animation import Animation, REPEATING
 
 class PlayerUI:
+    mm_offset = (50, 100)
+    mm_tile_size = 15
+
     def __init__(self, player):
         self.player = player #player reference
         self.health_bar_texture = load_texture("assets/ui_textures/health_bar.png")
         self.inventory_bar_texture = load_texture("assets/ui_textures/inventory_bar.png")
         self.inv_selected_slot = None #currently selected slot
+
+    def draw(self, floor):
+        self.draw_health_bar()
+        self.draw_inventory_bar()
+        self.draw_minimap(floor)
+
+    def draw_minimap(self, floor):
+        map = floor.map
+        blk = Color(100, 100, 100, 160)
+        wht = Color(230, 230, 230, 160)
+        grn = Color(20, 240, 40, 240)
+
+        draw_rectangle_lines(self.mm_offset[1], self.mm_offset[0], self.mm_tile_size*len(map[0]), self.mm_tile_size*len(map), WHITE)
+
+        for iy, row in enumerate(map):
+            for ix, tile in enumerate(row):
+                y = (iy * self.mm_tile_size) + self.mm_offset[0]
+                x = (ix * self.mm_tile_size) + self.mm_offset[1]
+                if tile == 'x':
+                    color = blk
+                elif tile == 'o':
+                    color = wht
+                if iy == floor.pos[0] and ix == floor.pos[1]:
+                    rect = Rectangle(x-1, y-1, self.mm_tile_size+2, self.mm_tile_size+2)
+                    draw_rectangle_lines_ex(rect, 2, grn)
+                draw_rectangle(x, y, self.mm_tile_size, self.mm_tile_size, color)
+
     #draw health bar to screen
     def draw_health_bar(self):
         health_percentage = self.player.health / self.player.max_health

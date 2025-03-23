@@ -90,8 +90,7 @@ while not window_should_close():
     clear_background(SKYBLUE)
     floor.draw()
     player.draw()
-    playerui.draw_health_bar()
-    playerui.draw_inventory_bar()
+    playerui.draw(floor)
     
     # Draw game over overlay if in game over state
     if game_state == GameState.GAME_OVER:
