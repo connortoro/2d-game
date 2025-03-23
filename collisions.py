@@ -10,6 +10,16 @@ def check_enemy_collisions(player, enemies):
 
 
 def check_obstacle_collisions(self, obstacles):
+
+    if self.rect.x < -60:
+        self.rect.x = -60
+    if self.rect.x > 1120:
+        self.rect.x = 1120
+    if self.rect.y < -65:
+        self.rect.y = -65
+    if self.rect.y > 550:
+        self.rect.y = 550
+
     for obstacle in obstacles:
         if check_collision_recs(self.hitbox, obstacle):
             # Calculate centers based on hitbox, not rectangle

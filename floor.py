@@ -34,7 +34,7 @@ class Floor:
         self.rooms.append(line.strip().split(" "))
     for y, row in enumerate(self.rooms):
       for x, tile_char in enumerate(row):
-        if tile_char == "o":
+        if tile_char == "o" or tile_char == 'b':
           room_num = str(random.randint(1, self.NUM_ROOMS))
           door_string = self.get_door_string(y, x)
           self.rooms[y][x] = Room(f"assets/rooms/{room_num}/obstacles.txt", f"assets/rooms/{room_num}/enemies.txt", door_string)
@@ -63,19 +63,19 @@ class Floor:
           y, x = self.pos
           self.pos = (y-1, x)
           self.map[y-1][x] = 'o'
-          player.rect.y = 600
+          player.rect.y = 540
         elif player.rect.y > 500: # S
           y, x = self.pos
           self.pos = (y+1, x)
           self.map[y+1][x] = 'o'
-          player.rect.y = 80
+          player.rect.y = 66
         elif player.rect.x < 200:
           y, x = self.pos
           self.pos = (y, x-1)
           self.map[y][x-1] = 'o'
-          player.rect.x = 1180
+          player.rect.x = 1110
         else:
           y, x = self.pos
           self.pos = (y, x+1)
           self.map[y][x+1] = 'o'
-          player.rect.x = 40
+          player.rect.x = -20
