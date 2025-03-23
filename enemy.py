@@ -12,7 +12,7 @@ class Enemy:
         self.vel = Vector2(0.0, 0.0)
         self.speed = speed
         self.rect = Rectangle(x, y, self.W * self.SCALE, self.H * self.SCALE)
-        self.animation = Animation(0, 3, 1, 0, 0.2, 0.2, REPEATING, 32, 32)
+        self.animation = Animation(0, 3, 1, 0, 16, 0.2, 0.2, REPEATING, 32, 32)
         self.hitbox = Rectangle(self.rect.x + (self.rect.width - 90) / 2, self.rect.y + self.rect.height - 60, 90, 60)
         self.health = 20  # Add health attribute
         self.maxHealth = 20
@@ -34,9 +34,11 @@ class Enemy:
             self.death_timer -= get_frame_time()
             if self.death_timer <= 0: 
                 self.is_alive = False
+                self.hitbox = Rectangle(0, 0, 0, 0)
         else:
             self.animation.animation_update()
-            check_obstacle_collisions(self, rects)
+            if not self.is_dying:
+                check_obstacle_collisions(self, rects)
             self.move(player.rect)
             self.update_position()
 
@@ -65,8 +67,8 @@ class Enemy:
         source = self.animation.animation_frame_horizontal()
         origin = Vector2(0.0, 0.0)
         draw_texture_pro(self.sheet, source, self.rect, origin, 0.0, WHITE)
-        
-        #draw_rectangle_lines_ex(self.hitbox, 1, RED)
+        if not self.is_dying:
+            draw_rectangle_lines_ex(self.hitbox, 1, RED)
     
     def draw_health_bar(self):
         draw_rectangle(self.rect.x+25, self.rect.y+4, 80, 5, RED)
@@ -80,4 +82,4 @@ class Enemy:
             self.is_dying = True  # Start death process
 
     def start_death_animation(self):
-        self.animation = Animation(0, 5, 1, 8, .2, .2, ONESHOT, 32, 32)
+        self.animation = Animation(0, 5, 1, 8, 16, .2, .2, ONESHOT, 32, 32)

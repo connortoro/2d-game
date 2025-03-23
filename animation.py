@@ -6,11 +6,12 @@ REPEATING = 0
 ONESHOT = 1
 
 class Animation:
-    def __init__(self, fst, lst, cur, offset, spd, rem, animation_type, frame_width, frame_height):
+    def __init__(self, fst, lst, cur, offset, offset_distance, spd, rem, animation_type, frame_width, frame_height):
         self.fst = fst #first frame
         self.lst = lst #last frame
         self.cur = cur #current frame
         self.offset = offset #offset of imge
+        self.offset_distance = offset_distance #distance between each sprite
         self.spd = spd #speed of animation
         self.rem = rem #remaining time on frame
         self.animation_type = animation_type
@@ -19,12 +20,12 @@ class Animation:
 
     def animation_frame_vertical(self): #for vertical sprite sheets
         y = (self.cur % (self.lst + 1)) * self.frame_height
-        x = self.offset * 16.0
+        x = self.offset * self.offset_distance
         return Rectangle (float(x), float(y), float(self.frame_width), float(self.frame_height))
     
     def animation_frame_horizontal(self): #for horizontal sprite sheets
         x = (self.cur % (self.lst + 1)) * self.frame_height
-        y = self.offset * 16.0
+        y = self.offset * self.offset_distance
         return Rectangle (float(x), float(y), float(self.frame_width), float(self.frame_height))
     
     def animation_update(self):
@@ -38,3 +39,12 @@ class Animation:
                     self.cur = self.fst #loop back to beginning
                 elif self.animation_type == ONESHOT:
                     self.cur = self.lst #stay at last frame
+
+    def is_complete(self):
+        if self.animation_type == ONESHOT and self.cur >= self.lst:
+            return True
+        return False
+        
+    def reset(self):
+        self.cur = self.fst
+        self.rem = self.spd

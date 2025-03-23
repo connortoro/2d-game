@@ -2,7 +2,7 @@ from raylibpy import *
 
 def check_enemy_collisions(player, enemies):
     for enemy in enemies:
-        if not enemy.is_alive:
+        if not enemy.is_alive or enemy.is_dying:
             continue  # Skip dead enemies
 
         if check_collision_recs(player.hitbox, enemy.hitbox):

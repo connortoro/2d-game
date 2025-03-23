@@ -87,3 +87,10 @@ class PlayerUI:
 
     def update_health(self, new_health):
         self.player.health = clamp(new_health, 0, self.player.max_health)
+
+    def reset(self):
+        """Reset the player's UI to its initial state."""
+        self.player.health = self.player.max_health
+        self.inv_selected_slot = None
+        self.draw_health_bar()
+        self.draw_inventory_bar()

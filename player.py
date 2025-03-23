@@ -8,17 +8,19 @@ from collisions import *
 
 # Dimensions of space
 W = 1300
-H = 800
+H = 900
 
-LEFT = 0
+LEFT = -1
 RIGHT = 1
-UP = 2
-DOWN = 3
+UP = -2
+DOWN = 2
 
 class playerState(Enum):
     """PLAYER STATES"""
     IDLE = "IDLE"
     DEAD = "DEAD"
+    MOVE = "MOVE"
+    ATTACK = "ATTACK"
 
     """WALKING STATES"""
     WALKING_UP = "WALKING_UP"
@@ -30,37 +32,48 @@ class playerState(Enum):
     WALKING_DOWN_LEFT = "WALKING_DOWN_LEFT"
     WALKING_DOWN_RIGHT = "WALKING_DOWN_RIGHT"
 
+    """ATTACKING STATES"""
+    ATTACK_RIGHT = "ATTACK_RIGHT"
+    ATTACK_UP = "ATTACK_UP"
+    ATTACK_DOWN = "ATTACK_DOWN"
+
 class Player:
     def __init__(self, texture):
         """================================= BASICS ================================="""
-        self.rect = Rectangle(W / 2.0, H / 2.0, 16.0 * 4, 24.0 * 4)  # * 4 to increase size of sprite
+        sprite_width = 96.0 * 2.5
+        sprite_height = 96.0 * 2.5
+        self.rect = Rectangle(W / 2.0 - sprite_width / 2.0, H / 2.0 - sprite_height / 2.0, sprite_width, sprite_height)
         self.vel = Vector2(0.0, 0.0)
         self.sprite = texture
         self.dir = RIGHT  # right
         self.death = load_texture("assets/player_sheet/dead.png")
         self.sword = load_texture("assets/textures/sword.png")
 
-        feet_width = 10.0 * 3  # Make collision box narrower than visual sprite
-        feet_height = 8.0 * 3  # Make collision box shorter, just for feet
+        feet_width = 10.0 * 4  # Make collision box narrower than visual sprite
+        feet_height = 8.0 * 6  # Make collision box shorter, just for feet
+        self.hitbox_offset = 50
         self.hitbox = Rectangle(
             self.rect.x + (self.rect.width - feet_width) / 2,  # Center horizontally
-            self.rect.y + self.rect.height - feet_height,  # Position at bottom of sprite
+            self.rect.y + self.rect.height - feet_height - self.hitbox_offset,  # Position at bottom of sprite
             feet_width,
             feet_height
         )
 
         """================================= ANIMATIONS ================================="""
         self.animations = {
-            playerState.IDLE: Animation(1, 3, 1, 8, 0.2, 0.2, REPEATING, 16, 24),
-            playerState.WALKING_UP: Animation(1, 3, 1, 0, 0.1, 0.1, REPEATING, 16, 24),
-            playerState.WALKING_DOWN: Animation(1, 3, 1, 4, 0.1, 0.1, REPEATING, 16, 24),
-            playerState.WALKING_RIGHT: Animation(1, 3, 1, 2, 0.1, 0.1, REPEATING, 16, 24),
-            playerState.WALKING_LEFT: Animation(1, 3, 1, 6, 0.1, 0.1, REPEATING, 16, 24),
-            playerState.WALKING_UP_LEFT: Animation(1, 3, 1, 7, 0.1, 0.1, REPEATING, 16, 24),
-            playerState.WALKING_UP_RIGHT: Animation(1, 3, 1, 1, 0.1, 0.1, REPEATING, 16, 24),
-            playerState.WALKING_DOWN_LEFT: Animation(1, 3, 1, 5, 0.1, 0.1, REPEATING, 16, 24),
-            playerState.WALKING_DOWN_RIGHT: Animation(1, 3, 1, 3, 0.1, 0.1, REPEATING, 16, 24),
-            playerState.DEAD: Animation(0, 6, 0, 0, 0.1, 0.1, ONESHOT, 64, 64),
+            playerState.IDLE: Animation(1, 5, 1, 0, 96, 0.1, 0.1, REPEATING, 96, 96),
+            playerState.WALKING_UP: Animation(1, 5, 1, 1, 96, 0.1, 0.1, REPEATING, 96, 96),
+            playerState.WALKING_DOWN: Animation(1, 5, 1, 1, 96, 0.1, 0.1, REPEATING, 96, 96),
+            playerState.WALKING_RIGHT: Animation(1, 5, 1, 1, 96, 0.1, 0.1, REPEATING, 96, 96),
+            playerState.WALKING_LEFT: Animation(1, 5, 1, 1, 96, 0.1, 0.1, REPEATING, 96, 96),
+            playerState.WALKING_UP_LEFT: Animation(1, 5, 1, 1, 96, 0.1, 0.1, REPEATING, 96, 96),
+            playerState.WALKING_UP_RIGHT: Animation(1, 5, 1, 1, 96, 0.1, 0.1, REPEATING, 96, 96),
+            playerState.WALKING_DOWN_LEFT: Animation(1, 5, 1, 1, 96, 0.1, 0.1, REPEATING, 96, 96),
+            playerState.WALKING_DOWN_RIGHT: Animation(1, 5, 1, 1, 96, 0.1, 0.1, REPEATING, 96, 96),
+            playerState.DEAD: Animation(0, 6, 0, 0, 16, 0.1, 0.1, ONESHOT, 64, 64),
+            playerState.ATTACK_RIGHT: Animation(1, 5, 1, 2, 96, 0.1, 0.1, ONESHOT, 96, 96),
+            playerState.ATTACK_UP: Animation(1, 5, 1, 6, 96, 0.1, 0.1, ONESHOT, 96, 96),
+            playerState.ATTACK_DOWN: Animation(1, 5, 1, 4, 96, 0.1, 0.1, ONESHOT, 96, 96),
         }
 
         self.state = playerState.IDLE  # default state
@@ -93,47 +106,87 @@ class Player:
             self.state = playerState.DEAD  # set player state to dead
 
     def update(self, room: Room):
+
         if self.state == playerState.DEAD:
-            self.update_animation()  # run death animation
-            return  # stop updating, player dead
-        self.move()
+            self.handle_death()
+        # Handle attack first
+        self.handle_attack(room.enemies)
+        
+        # Only handle movement if not in an attack animation
+        if not hasattr(self, 'is_attacking') or not self.is_attacking:
+            self.handle_movement()
+        else:
+            # We're in an attack animation but can still move
+            # Keep the attack state but apply movement
+            self.vel.x = 0.0
+            self.vel.y = 0.0
+            
+            speed = 300.0 if is_key_down(KEY_LEFT_SHIFT) else 200.0
+            
+            # Apply velocity without changing state
+            if is_key_down(KEY_A):
+                self.vel.x = -speed
+                self.dir = LEFT
+            if is_key_down(KEY_D):
+                self.vel.x = speed
+                self.dir = RIGHT
+            if is_key_down(KEY_W):
+                self.vel.y = -speed
+            if is_key_down(KEY_S):
+                self.vel.y = speed
+                
+            # Normalize diagonal movement
+            if self.vel.x != 0 and self.vel.y != 0:
+                # Normalize to maintain consistent speed in diagonal movement
+                length = math.sqrt(self.vel.x * self.vel.x + self.vel.y * self.vel.y)
+                self.vel.x = (self.vel.x / length) * speed
+                self.vel.y = (self.vel.y / length) * speed
+
+        # update player's position based on velocity
+        self.position += self.vel * get_frame_time()
+
         self.check_collisions(room)
         self.update_position()
         self.update_animation()
-        self.update_reticle()
-
-        # Check for attack input (left mouse button)
-        if self.attack_timer > 0:
-            self.attack_timer -= get_frame_time()
-        elif is_mouse_button_pressed(MOUSE_LEFT_BUTTON):
-            self.perform_attack(room.enemies)
-            self.attack_timer = self.attack_cooldown
 
     def draw(self):
-        # checks if player is dead
+        # Get the movement animation source
+        source = self.current_animation.animation_frame_horizontal()
+        origin = Vector2(0.0, 0.0)
+
         if self.state == playerState.DEAD:
             death_rect = Rectangle(self.rect.x, self.rect.y, 64.0 * 2, 64.0 * 2)
-            source = self.current_animation.animation_frame_horizontal()
-            origin = Vector2(0.0, 0.0)
             draw_texture_pro(self.death, source, death_rect, origin, 0.0, WHITE)
-
-        else:  # not dead
-            source = self.current_animation.animation_frame_vertical() 
-            origin = Vector2(0.0, 0.0)
-            # check if player is damaged
+            return #player dead, exit
+        else:
+            # draw hurt animation
             if time.time() - self.damage_timer < self.highlight_duration:
-                draw_texture_pro(self.sprite, source, self.rect, origin, 0.0, GRAY)
+                draw_texture_pro(self.sprite, source, self.rect, origin, 0.0, RED)
             else:
-                draw_texture_pro(self.sprite, source, self.rect, origin, 0.0, WHITE)
-            #draw_rectangle_lines_ex(self.hitbox, 1, RED)
-        self.draw_reticle()
-        #self.draw_attack_arc()
-        if self.attack_timer > .3:
-            self.draw_sword()
+                #draw animations if going left
+                if self.dir == LEFT:
+                    source.width = source.width * self.dir
+                    draw_texture_pro(self.sprite, source, self.rect, origin, 0.0, WHITE)
+                else:
+                    draw_texture_pro(self.sprite, source, self.rect, origin, 0.0, WHITE)
 
-    def move(self):
+            # If attacking, draw the attack animation on top
+            if hasattr(self, 'attacking') and self.attacking and self.attack_animation:
+                attack_source = self.attack_animation.animation_frame_horizontal()
+                
+                # Flip attack animation if facing left
+                if self.dir == LEFT:
+                    attack_source.width = attack_source.width * self.dir
+                
+                draw_texture_pro(self.sprite, attack_source, self.rect, origin, 0.0, WHITE)
+
+            # Draw hitboxes for debugging
+            draw_rectangle_lines_ex(self.hitbox, 1, RED)
+            #draw_rectangle_lines_ex(self.rect, 1, RED)
+
+    def handle_movement(self):
         if self.state == playerState.DEAD:
-            return  # prevent movement when dead
+            return
 
         self.vel.x = 0.0
         self.vel.y = 0.0
@@ -164,7 +217,7 @@ class Player:
         self.rect.x += self.vel.x * get_frame_time()
         self.rect.y += self.vel.y * get_frame_time()
         self.hitbox.x = self.rect.x + (self.rect.width - self.hitbox.width) / 2
-        self.hitbox.y = self.rect.y + self.rect.height - self.hitbox.height
+        self.hitbox.y = self.rect.y + self.rect.height - self.hitbox.height - self.hitbox_offset
 
     def update_animation(self):
         self.current_animation = self.animations[self.state]
@@ -175,97 +228,118 @@ class Player:
         if not time.time() - self.damage_timer < self.highlight_duration:
             check_enemy_collisions(self, room.enemies)
 
+    def handle_death(self):
+        # prevent movement
+        self.vel.x, self.vel.y = 0.0, 0.0  # Stop movement
+
+        #change state to dead
+        self.state = playerState.DEAD
+        self.current_animation = self.animations[self.state]
+
     """================================= ATTACK MECHANIC ================================="""
 
-    def draw_sword(self):
-        mouse_pos = get_mouse_position()
-        dx = mouse_pos.x - (self.rect.x + self.rect.width / 2)
-        dy = mouse_pos.y - (self.rect.y + self.rect.height / 2)
-        vec = (vector2_scale(vector2_normalize(Vector2(dx, dy)), 20))
-        
-        source = Rectangle(0, 0, 160, 160)
-        dest = Rectangle(vec.x + self.rect.x + 32, vec.y + self.rect.y + 48, 50, 50)
-        
-        origin = Vector2(10, 40)
-        angle = math.atan2(dy, dx) * 180 / math.pi + 160
-        dt = ((.7 - self.attack_timer) / .4) * 160
-        angle -= dt
+    def handle_attack(self, enemies):
+        # Do not allow attack if the current state is dead
+        if self.state == playerState.DEAD:
+            return
 
-        draw_texture_pro(self.sword, source, dest, origin, angle, WHITE)
+        # Check if we're currently in an attack animation
+        if hasattr(self, 'is_attacking') and self.is_attacking:
+            # Check if the attack animation has completed
+            if self.current_animation.is_complete():
+                self.is_attacking = False
 
-    def update_reticle(self):
-        # Update reticle angle based on mouse position
-        mouse_pos = get_mouse_position()
-        dx = mouse_pos.x - (self.rect.x + self.rect.width / 2)
-        dy = mouse_pos.y - (self.rect.y + self.rect.height / 2)
-        self.reticle_angle = math.atan2(dy, dx)
+        # Handle attack initiation
+        if self.attack_timer > 0:
+            self.attack_timer -= get_frame_time()
+        elif is_mouse_button_pressed(MOUSE_LEFT_BUTTON) and self.attack_timer <= 0:
+            self.perform_attack(enemies)
 
-    def draw_reticle(self):
-        # Draw reticle (triangle) at the calculated position
-        reticle_pos = Vector2(
-            self.rect.x + self.rect.width / 2 + math.cos(self.reticle_angle) * self.reticle_distance,
-            self.rect.y + self.rect.height / 2 + math.sin(self.reticle_angle) * self.reticle_distance
-        )
-        draw_triangle(
-            Vector2(reticle_pos.x + 10, reticle_pos.y),
-            Vector2(reticle_pos.x - 10, reticle_pos.y - 10),
-            Vector2(reticle_pos.x - 10, reticle_pos.y + 10),
-            self.reticle_color  # Use semi-transparent color
-        )
+            # Set the attack state and animation, but remember the previous state
+            self.previous_state = self.state
 
-    def draw_attack_arc(self):
-        # Define the arc's start and end angles
-        start_angle = self.reticle_angle - math.radians(self.attack_angle / 2)
-        end_angle = self.reticle_angle + math.radians(self.attack_angle / 2)
+            # Get the mouse position
+            mouse_pos = get_mouse_position()
+            
+            # Calculate the angle from the player to the mouse
+            player_center_x = self.rect.x + self.rect.width / 2
+            player_center_y = self.rect.y + self.rect.height / 2
+            dx = mouse_pos.x - player_center_x
+            dy = mouse_pos.y - player_center_y
+            angle = math.degrees(math.atan2(dy, dx))  # Angle between player and mouse in degrees
 
-        # Draw a rectangle to represent the attack range
-        draw_rectangle(
-            int(self.rect.x + self.rect.width / 2 - self.attack_range),  # Top-left x
-            int(self.rect.y + self.rect.height / 2 - self.attack_range),  # Top-left y
-            int(self.attack_range * 2),  # Width
-            int(self.attack_range * 2),  # Height
-            Color(255, 0, 0, 50)  # Semi-transparent red
-        )
+            # Normalize the angle to a range [0, 360]
+            if angle < 0:
+                angle += 360
 
-        # Draw lines to represent the attack arc
-        center = Vector2(self.rect.x + self.rect.width / 2, self.rect.y + self.rect.height / 2)
-        start_pos = Vector2(
-            center.x + math.cos(start_angle) * self.attack_range,
-            center.y + math.sin(start_angle) * self.attack_range
-        )
-        end_pos = Vector2(
-            center.x + math.cos(end_angle) * self.attack_range,
-            center.y + math.sin(end_angle) * self.attack_range
-        )
+            # Determine attack direction based on the angle
+            if 45 <= angle < 135:
+                self.state = playerState.ATTACK_DOWN
+                self.dir = DOWN
+            elif 135 <= angle < 225:
+                self.state = playerState.ATTACK_RIGHT
+                self.dir = LEFT
+            elif 225 <= angle < 315:
+                self.state = playerState.ATTACK_UP
+                self.dir = UP
+            else:
+                self.state = playerState.ATTACK_RIGHT
+                self.dir = RIGHT
 
-        # Draw the lines
-        draw_line_v(center, start_pos, RED)
-        draw_line_v(center, end_pos, RED)
+            # Update the animation and reset it
+            self.current_animation = self.animations[self.state]
+            self.current_animation.reset()
+
+            # Mark that we're in an attack animation
+            self.is_attacking = True
+            self.attack_timer = self.attack_cooldown
+
 
     def perform_attack(self, enemies):
+        # Get player's center position
+        player_center_x = self.rect.x + self.rect.width / 2
+        player_center_y = self.rect.y + self.rect.height / 2
+        
+        # Define the attack direction based on player's current direction
+        direction_angles = {
+            RIGHT: 0,      # Right = 0 degrees
+            LEFT: 180,     # Left = 180 degrees
+            UP: 270,       # Up = 270 degrees
+            DOWN: 90       # Down = 90 degrees
+        }
+        
+        # Get the center angle for the attack based on player direction
+        facing_angle = direction_angles.get(self.dir, 0)
+        
+        # Define the attack arc (half of the total angle)
+        attack_arc = self.attack_angle / 2
+        
         # Check which enemies are within the attack arc
         for enemy in enemies:
             # Calculate the center position of the enemy
-            enemy_center = Vector2(
-                enemy.rect.x + enemy.rect.width / 2,
-                enemy.rect.y + enemy.rect.height / 2
-            )
-
+            enemy_center_x = enemy.rect.x + enemy.rect.width / 2
+            enemy_center_y = enemy.rect.y + enemy.rect.height / 2
+            
             # Calculate the vector from the player to the enemy
-            dx = enemy_center.x - (self.rect.x + self.rect.width / 2)
-            dy = enemy_center.y - (self.rect.y + self.rect.height / 2)
+            dx = enemy_center_x - player_center_x
+            dy = enemy_center_y - player_center_y
             distance = math.hypot(dx, dy)
+            
+            # If enemy is within attack range
+            if distance <= self.attack_range:
+                # Calculate angle between player and enemy (in degrees)
+                angle_to_enemy = math.degrees(math.atan2(dy, dx))
+                if angle_to_enemy < 0:
+                    angle_to_enemy += 360  # Convert negative angles to 0-360 range
+                
+                # Check if the enemy is within the attack arc
+                angle_diff = abs((angle_to_enemy - facing_angle + 180) % 360 - 180)
+                if angle_diff <= attack_arc:
+                    # Enemy is within the attack arc and range
+                    self.damage_enemy(enemy)
 
-            if distance > self.attack_range:
-                continue  # Enemy is out of range
-
-            # Calculate angle between player and enemy
-            enemy_angle = math.degrees(math.atan2(dy, dx))
-            reticle_angle_deg = math.degrees(self.reticle_angle)
-
-            # Normalize angles to handle wrapping around 360 degrees
-            angle_diff = abs((enemy_angle - reticle_angle_deg + 180) % 360 - 180)
-            if angle_diff <= self.attack_angle / 2:
-                # Enemy is within the attack arc and range
-                if hasattr(enemy, 'health'):  # Check if the enemy has a health attribute
-                    enemy.health -= 10  # Apply damage (you can adjust the damage value later)
+            
+    def damage_enemy(self, enemy):
+        # Enemy is within the attack arc and range
+        if hasattr(enemy, 'health'):  # Check if the enemy has a health attribute
+            enemy.health -= 10  # Apply damage (you can adjust the damage value later)
