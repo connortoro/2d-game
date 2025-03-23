@@ -36,6 +36,7 @@ class playerState(Enum):
     ATTACK_RIGHT = "ATTACK_RIGHT"
     ATTACK_UP = "ATTACK_UP"
     ATTACK_DOWN = "ATTACK_DOWN"
+    ATTACK_LEFT = "ATTACK_LEFT"
 
 class Player:
     def __init__(self, texture):
@@ -49,7 +50,7 @@ class Player:
         self.death = load_texture("assets/player_sheet/dead.png")
         self.sword = load_texture("assets/textures/sword.png")
 
-        feet_width = 10.0 * 4  # Make collision box narrower than visual sprite
+        feet_width = 10.0 * 4  
         feet_height = 8.0 * 6  # Make collision box shorter, just for feet
         self.hitbox_offset = 50
         self.hitbox = Rectangle(
@@ -72,11 +73,13 @@ class Player:
             playerState.WALKING_DOWN_RIGHT: Animation(1, 5, 1, 1, 96, 0.1, 0.1, REPEATING, 96, 96),
             playerState.DEAD: Animation(0, 6, 0, 0, 16, 0.1, 0.1, ONESHOT, 64, 64),
             playerState.ATTACK_RIGHT: Animation(1, 5, 1, 2, 96, 0.1, 0.1, ONESHOT, 96, 96),
+            playerState.ATTACK_LEFT: Animation(1, 5, 1, 2, 96, 0.1, 0.1, ONESHOT, 96, 96, True),
             playerState.ATTACK_UP: Animation(1, 5, 1, 6, 96, 0.1, 0.1, ONESHOT, 96, 96),
             playerState.ATTACK_DOWN: Animation(1, 5, 1, 4, 96, 0.1, 0.1, ONESHOT, 96, 96),
         }
 
         self.state = playerState.IDLE  # default state
+        self.attack_state = playerState.ATTACK_RIGHT
         self.current_animation = self.animations[self.state]  # default animation
 
         """================================= PLAYER STATS ================================="""
@@ -91,13 +94,11 @@ class Player:
         self.highlight_duration = 0.7  # duration of red highlight over player
 
         """================================= ATTACK MECHANIC ================================="""
+        self.dmg = 10
         self.attack_timer = 0
         self.attack_cooldown = 0.6
-        self.reticle_angle = 0  # Angle of the reticle (in radians)
         self.attack_range = 150  # Range of the attack
         self.attack_angle = 90  # Angle of the attack arc (in degrees)
-        self.reticle_distance = 60  # Distance of the reticle from the player
-        self.reticle_color = Color(255, 0, 0, 150)  # Semi-transparent red
 
     def take_damage(self, damage_amount):
         self.health = max(0, self.health - damage_amount)  # take damage
@@ -109,42 +110,9 @@ class Player:
 
         if self.state == playerState.DEAD:
             self.handle_death()
-        # Handle attack first
+
         self.handle_attack(room.enemies)
-        
-        # Only handle movement if not in an attack animation
-        if not hasattr(self, 'is_attacking') or not self.is_attacking:
-            self.handle_movement()
-        else:
-            # We're in an attack animation but can still move
-            # Keep the attack state but apply movement
-            self.vel.x = 0.0
-            self.vel.y = 0.0
-            
-            speed = 300.0 if is_key_down(KEY_LEFT_SHIFT) else 200.0
-            
-            # Apply velocity without changing state
-            if is_key_down(KEY_A):
-                self.vel.x = -speed
-                self.dir = LEFT
-            if is_key_down(KEY_D):
-                self.vel.x = speed
-                self.dir = RIGHT
-            if is_key_down(KEY_W):
-                self.vel.y = -speed
-            if is_key_down(KEY_S):
-                self.vel.y = speed
-                
-            # Normalize diagonal movement
-            if self.vel.x != 0 and self.vel.y != 0:
-                # Normalize to maintain consistent speed in diagonal movement
-                length = math.sqrt(self.vel.x * self.vel.x + self.vel.y * self.vel.y)
-                self.vel.x = (self.vel.x / length) * speed
-                self.vel.y = (self.vel.y / length) * speed
-
-        # update player's position based on velocity
-        self.position += self.vel * get_frame_time()
-
+        self.handle_movement()
         self.check_collisions(room)
         self.update_position()
         self.update_animation()
@@ -162,6 +130,9 @@ class Player:
             # draw hurt animation
             if time.time() - self.damage_timer < self.highlight_duration:
                 draw_texture_pro(self.sprite, source, self.rect, origin, 0.0, RED)
+            elif self.attack_timer > 0:
+                attack_source = self.animations[self.attack_state].animation_frame_horizontal()
+                draw_texture_pro(self.sprite, attack_source, self.rect, origin, 0.0, WHITE)
             else:
                 #draw animations if going left
                 if self.dir == LEFT:
@@ -175,10 +146,7 @@ class Player:
                 attack_source = self.attack_animation.animation_frame_horizontal()
                 
                 # Flip attack animation if facing left
-                if self.dir == LEFT:
-                    attack_source.width = attack_source.width * self.dir
                 
-                draw_texture_pro(self.sprite, attack_source, self.rect, origin, 0.0, WHITE)
 
             # Draw hitboxes for debugging
             draw_rectangle_lines_ex(self.hitbox, 1, RED)
@@ -187,10 +155,8 @@ class Player:
     def handle_movement(self):
         if self.state == playerState.DEAD:
             return
-
         self.vel.x = 0.0
         self.vel.y = 0.0
-
         speed = 300.0 if is_key_down(KEY_LEFT_SHIFT) else 200.0  # defines speed, increases if shift is pressed
 
         movement_keys = {  # dictionary of movements
@@ -217,7 +183,7 @@ class Player:
         self.rect.x += self.vel.x * get_frame_time()
         self.rect.y += self.vel.y * get_frame_time()
         self.hitbox.x = self.rect.x + (self.rect.width - self.hitbox.width) / 2
-        self.hitbox.y = self.rect.y + self.rect.height - self.hitbox.height - self.hitbox_offset
+        self.hitbox.y = self.rect.y + self.rect.height - self.hitbox.height - self.hitbox_offset - 30
 
     def update_animation(self):
         self.current_animation = self.animations[self.state]
@@ -239,107 +205,77 @@ class Player:
     """================================= ATTACK MECHANIC ================================="""
 
     def handle_attack(self, enemies):
-        # Do not allow attack if the current state is dead
         if self.state == playerState.DEAD:
             return
 
-        # Check if we're currently in an attack animation
-        if hasattr(self, 'is_attacking') and self.is_attacking:
-            # Check if the attack animation has completed
-            if self.current_animation.is_complete():
-                self.is_attacking = False
+        if self.attack_timer > 0:
+            self.animations[self.attack_state].animation_update()
+            self.attack_timer -= get_frame_time()
+            if self.attack_timer <= 0:
+                self.animations[self.attack_state].reset()
+            return
 
         # Handle attack initiation
-        if self.attack_timer > 0:
+        if self.attack_timer >= 0:
             self.attack_timer -= get_frame_time()
-        elif is_mouse_button_pressed(MOUSE_LEFT_BUTTON) and self.attack_timer <= 0:
-            self.perform_attack(enemies)
-
-            # Set the attack state and animation, but remember the previous state
-            self.previous_state = self.state
-
-            # Get the mouse position
-            mouse_pos = get_mouse_position()
-            
-            # Calculate the angle from the player to the mouse
-            player_center_x = self.rect.x + self.rect.width / 2
-            player_center_y = self.rect.y + self.rect.height / 2
-            dx = mouse_pos.x - player_center_x
-            dy = mouse_pos.y - player_center_y
-            angle = math.degrees(math.atan2(dy, dx))  # Angle between player and mouse in degrees
-
-            # Normalize the angle to a range [0, 360]
-            if angle < 0:
-                angle += 360
-
-            # Determine attack direction based on the angle
-            if 45 <= angle < 135:
-                self.state = playerState.ATTACK_DOWN
-                self.dir = DOWN
-            elif 135 <= angle < 225:
-                self.state = playerState.ATTACK_RIGHT
-                self.dir = LEFT
-            elif 225 <= angle < 315:
-                self.state = playerState.ATTACK_UP
-                self.dir = UP
-            else:
-                self.state = playerState.ATTACK_RIGHT
-                self.dir = RIGHT
-
-            # Update the animation and reset it
-            self.current_animation = self.animations[self.state]
-            self.current_animation.reset()
-
-            # Mark that we're in an attack animation
-            self.is_attacking = True
+        elif is_key_down(KEY_LEFT):
             self.attack_timer = self.attack_cooldown
+            self.attack_state = playerState.ATTACK_LEFT
+            self.perform_attack(enemies, 'W')
+        elif is_key_down(KEY_RIGHT):
+            self.attack_timer = self.attack_cooldown
+            self.attack_state = playerState.ATTACK_RIGHT
+            self.perform_attack(enemies, 'E')
+        elif is_key_down(KEY_UP):
+            self.attack_timer = self.attack_cooldown
+            self.attack_state = playerState.ATTACK_UP
+            self.perform_attack(enemies, 'N')
+        elif is_key_down(KEY_DOWN):
+            self.attack_timer = self.attack_cooldown
+            self.attack_state = playerState.ATTACK_DOWN
+            self.perform_attack(enemies, 'S')
+        
 
-
-    def perform_attack(self, enemies):
-        # Get player's center position
-        player_center_x = self.rect.x + self.rect.width / 2
-        player_center_y = self.rect.y + self.rect.height / 2
+    def perform_attack(self, enemies, dir):
+        attack_rect = None
         
-        # Define the attack direction based on player's current direction
-        direction_angles = {
-            RIGHT: 0,      # Right = 0 degrees
-            LEFT: 180,     # Left = 180 degrees
-            UP: 270,       # Up = 270 degrees
-            DOWN: 90       # Down = 90 degrees
-        }
+        # Create attack rectangle based on direction
+        if dir == 'N':  # North/Up
+            attack_rect = Rectangle(
+                self.hitbox.x - self.attack_range/2 + self.hitbox.width/2,  # Centered horizontally
+                self.hitbox.y - self.attack_range,  # Above the player
+                self.hitbox.width + self.attack_range,  # Wider than player
+                self.attack_range  # Height = attack range
+            )
+        elif dir == 'E':  # East/Right
+            attack_rect = Rectangle(
+                self.hitbox.x + self.hitbox.width,  # Right of player
+                self.hitbox.y - self.attack_range/2 + self.hitbox.height/2,  # Centered vertically
+                self.attack_range,  # Width = attack range
+                self.hitbox.height + self.attack_range  # Taller than player
+            )
+        elif dir == 'S':  # South/Down
+            attack_rect = Rectangle(
+                self.hitbox.x - self.attack_range/2 + self.hitbox.width/2,  # Centered horizontally
+                self.hitbox.y + self.hitbox.height,  # Below the player
+                self.hitbox.width + self.attack_range,  # Wider than player
+                self.attack_range  # Height = attack range
+            )
+        elif dir == 'W':  # West/Left
+            attack_rect = Rectangle(
+                self.hitbox.x - self.attack_range,  # Left of player
+                self.hitbox.y - self.attack_range/2 + self.hitbox.height/2,  # Centered vertically 
+                self.attack_range,  # Width = attack range
+                self.hitbox.height + self.attack_range  # Taller than player
+            )
         
-        # Get the center angle for the attack based on player direction
-        facing_angle = direction_angles.get(self.dir, 0)
+        # Debug: Uncomment to see attack hitbox
+        draw_rectangle_lines_ex(attack_rect, 1, BLUE)
         
-        # Define the attack arc (half of the total angle)
-        attack_arc = self.attack_angle / 2
-        
-        # Check which enemies are within the attack arc
-        for enemy in enemies:
-            # Calculate the center position of the enemy
-            enemy_center_x = enemy.rect.x + enemy.rect.width / 2
-            enemy_center_y = enemy.rect.y + enemy.rect.height / 2
-            
-            # Calculate the vector from the player to the enemy
-            dx = enemy_center_x - player_center_x
-            dy = enemy_center_y - player_center_y
-            distance = math.hypot(dx, dy)
-            
-            # If enemy is within attack range
-            if distance <= self.attack_range:
-                # Calculate angle between player and enemy (in degrees)
-                angle_to_enemy = math.degrees(math.atan2(dy, dx))
-                if angle_to_enemy < 0:
-                    angle_to_enemy += 360  # Convert negative angles to 0-360 range
-                
-                # Check if the enemy is within the attack arc
-                angle_diff = abs((angle_to_enemy - facing_angle + 180) % 360 - 180)
-                if angle_diff <= attack_arc:
-                    # Enemy is within the attack arc and range
-                    self.damage_enemy(enemy)
-
-            
-    def damage_enemy(self, enemy):
-        # Enemy is within the attack arc and range
-        if hasattr(enemy, 'health'):  # Check if the enemy has a health attribute
-            enemy.health -= 10  # Apply damage (you can adjust the damage value later)
+        # Check for collisions with enemies and apply damage
+        if attack_rect:
+            for enemy in enemies:
+                if check_collision_recs(attack_rect, enemy.hitbox):
+                    enemy.health -= self.dmg
+                    # Optional: Add hit effect or animation
+                    enemy.damage_timer = time.time()  # If enemy has a damage timer like player
