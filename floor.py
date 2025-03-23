@@ -10,6 +10,8 @@ class Floor:
   def __init__(self):
     self.rooms = []
     self.pos = (3, 2)
+    self.map = [['x'] * 10 for _ in range(6)]
+    self.map[3][2] = 'o'
     self.gen()
 
   def update(self, player):
@@ -60,16 +62,20 @@ class Floor:
         if player.rect.y < 100: # N
           y, x = self.pos
           self.pos = (y-1, x)
+          self.map[y-1][x] = 'o'
           player.rect.y = 600
         elif player.rect.y > 500: # S
           y, x = self.pos
           self.pos = (y+1, x)
+          self.map[y+1][x] = 'o'
           player.rect.y = 80
         elif player.rect.x < 200:
           y, x = self.pos
           self.pos = (y, x-1)
+          self.map[y][x-1] = 'o'
           player.rect.x = 1180
         else:
           y, x = self.pos
           self.pos = (y, x+1)
+          self.map[y][x+1] = 'o'
           player.rect.x = 40
