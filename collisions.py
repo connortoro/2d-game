@@ -1,15 +1,27 @@
 from raylibpy import *
 
-def check_enemy_collisions(player, enemies):
-    for enemy in enemies:
+def check_enemy_collisions(player, room):
+    for enemy in room.enemies:
         if not enemy.is_alive or enemy.is_dying:
             continue  # Skip dead enemies
 
         if check_collision_recs(player.hitbox, enemy.hitbox):
-            player.take_damage(10)  # Example: Player takes 10 damage
-
+            player.take_damage(enemy.dmg)  # Example: Player takes 10 damage
+    for spike in room.spikes:
+        if check_collision_recs(spike, player.hitbox):
+            player.take_damage(10)
 
 def check_obstacle_collisions(self, obstacles):
+
+    if self.rect.x < -60:
+        self.rect.x = -60
+    if self.rect.x > 1120:
+        self.rect.x = 1120
+    if self.rect.y < -65:
+        self.rect.y = -65
+    if self.rect.y > 550:
+        self.rect.y = 550
+
     for obstacle in obstacles:
         if check_collision_recs(self.hitbox, obstacle):
             # Calculate centers based on hitbox, not rectangle

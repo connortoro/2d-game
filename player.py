@@ -128,18 +128,19 @@ class Player:
             return #player dead, exit
         else:
             # draw hurt animation
+            color = WHITE
             if time.time() - self.damage_timer < self.highlight_duration:
-                draw_texture_pro(self.sprite, source, self.rect, origin, 0.0, RED)
-            elif self.attack_timer > 0:
+                color = RED
+            if self.attack_timer > 0:
                 attack_source = self.animations[self.attack_state].animation_frame_horizontal()
-                draw_texture_pro(self.sprite, attack_source, self.rect, origin, 0.0, WHITE)
+                draw_texture_pro(self.sprite, attack_source, self.rect, origin, 0.0, color)
             else:
                 #draw animations if going left
                 if self.dir == LEFT:
                     source.width = source.width * self.dir
-                    draw_texture_pro(self.sprite, source, self.rect, origin, 0.0, WHITE)
+                    draw_texture_pro(self.sprite, source, self.rect, origin, 0.0, color)
                 else:
-                    draw_texture_pro(self.sprite, source, self.rect, origin, 0.0, WHITE)
+                    draw_texture_pro(self.sprite, source, self.rect, origin, 0.0, color)
 
             # If attacking, draw the attack animation on top
             if hasattr(self, 'attacking') and self.attacking and self.attack_animation:
@@ -192,7 +193,7 @@ class Player:
     def check_collisions(self, room: Room):
         check_obstacle_collisions(self, room.rectangles)
         if not time.time() - self.damage_timer < self.highlight_duration:
-            check_enemy_collisions(self, room.enemies)
+            check_enemy_collisions(self, room)
 
     def handle_death(self):
         # prevent movement
