@@ -1,6 +1,7 @@
 from raylibpy import *
 from enemy import Enemy
 from animation import Animation, REPEATING, ONESHOT
+from npc import NPC
 
 class Room:
     texture = None
@@ -53,20 +54,28 @@ class Room:
                 ["bl", "b", "b", "b", "b", "b", "b", "b", "b", "b", "b", "b", "br"]
             ]
 
-    def __init__(self, obstacles_path, enemies_path, door_string):
+    def __init__(self, obstacles_path, enemies_path, npcs_path, door_string, is_trader_room=False):
         if Room.texture is None:
             Room.initialize()
 
         self.door_string = door_string
+        self.is_trader_room = is_trader_room
         self.doors = []
         self.rectangles = []
         self.spikes = []
         self.object_grid = []
+        self.npcs = []
+        self.npc_grid = []
         with open(obstacles_path) as file:
             for line in file:
                 self.object_grid.append(line.strip().split(" "))
         self.gen_rectangles()
         
+        with open(npcs_path) as file:
+            for line in file:
+                self.npc_grid.append(line.strip().split())
+        self.gen_npcs()
+
         self.enemies = []
         self.enemy_grid = []
         with open(enemies_path) as file:
@@ -77,12 +86,14 @@ class Room:
     def update(self, player):
         for enemy in self.enemies:
             enemy.update(player, self.rectangles)
+        self.check_npc_interaction(player)
 
     def draw(self):
         self.draw_empty_room()
         self.draw_doors()
         self.draw_objects()
         self.draw_enemies()
+        self.draw_npcs()
       
     def draw_empty_room(self):
         for dest_y, row in enumerate(self.empty_grid):
@@ -105,6 +116,10 @@ class Room:
         for enemy in self.enemies:
             enemy.draw()
 
+    def draw_npcs(self):
+        for npc in self.npcs:
+            npc.draw()
+        
     def draw_doors(self):
         for dir in self.door_string:
             source_x, source_y = self.door_key[dir]
@@ -158,3 +173,19 @@ class Room:
                     death_animation = Animation(0, 4, 1, 10, 16, .2, .2, ONESHOT, 32, 32)
                     enemy = Enemy("assets/enemy_sheets/MINION_4.png", x * self.scale, y * self.scale, 40, 110, 20, animation, death_animation)
                     self.enemies.append(enemy)
+
+    def gen_npcs(self):
+        self.npcs = []
+        for y, row in enumerate(self.npc_grid):
+            for x, tile_char in enumerate(row):
+                if (tile_char == '2' and self.object_grid[y][x] == "t") or (self.is_trader_room and len(self.npcs) == 0):
+                        center_x = x * self.scale + (self.scale - (16 * 5)) / 2 + 30
+                        center_y = y * self.scale + (self.scale - (24 * 5)) / 2 + 30
+                        npc = NPC(load_texture("assets/player_sheet/8d-character.png"), center_x, center_y)
+                        self.npcs.append(npc)
+    
+    def check_npc_interaction(self, player):
+        for npc in self.npcs:
+            if (abs(player.rect.x - npc.x) < self.scale and
+                abs(player.rect.y - npc.y) < self.scale):
+                npc.check_interaction(player)

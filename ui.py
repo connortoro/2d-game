@@ -16,6 +16,10 @@ class PlayerUI:
         self.draw_health_bar()
         self.draw_inventory_bar()
         self.draw_minimap(floor)
+        self.draw_score()
+
+    def draw_score(self):
+        draw_text(f"Score: {str(self.player.score)}", 1000, 830, 40, BLACK)
 
     def draw_minimap(self, floor):
         map = floor.map

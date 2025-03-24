@@ -1,8 +1,8 @@
 from raylibpy import *
-from room import Room
 from floor import Floor
 from player import Player, W, H
 from ui import PlayerUI
+from npc import NPC
 from enum import Enum
 import time
 
@@ -12,7 +12,6 @@ player_texture = load_texture("assets/player_sheet/player.png")
 player = Player(player_texture)
 playerui = PlayerUI(player)
 floor = Floor()
-
 
 # Game state enum
 class GameState(Enum):
@@ -91,6 +90,25 @@ while not window_should_close():
     floor.draw()
     player.draw()
     playerui.draw(floor)
+    if player.in_dialog:
+        draw_rectangle(100, 400, 600, 150, DARKGRAY)
+        draw_text("Hello, hero! Choose an upgrade:", 110, 410, 20, WHITE)
+        draw_text("1: Increase Health", 110, 440, 20, WHITE)
+        draw_text("2: Increase Speed", 110, 470, 20, WHITE)
+        draw_text("3: Increase Attack", 110, 500, 20, WHITE)
+        
+        # Handle dialog input
+        if is_key_pressed(KEY_ONE):
+            player.increase_health(10)
+            player.in_dialog = False
+        elif is_key_pressed(KEY_TWO):
+            player.increase_speed(2)
+            player.in_dialog = False
+        elif is_key_pressed(KEY_THREE):
+            player.increase_attack(5)
+            player.in_dialog = False
+        elif is_key_pressed(KEY_ESCAPE):
+            player.in_dialog = False
     
     # Draw game over overlay if in game over state
     if game_state == GameState.GAME_OVER:
