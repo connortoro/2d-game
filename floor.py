@@ -34,10 +34,16 @@ class Floor:
         self.rooms.append(line.strip().split(" "))
     for y, row in enumerate(self.rooms):
       for x, tile_char in enumerate(row):
-        if tile_char == "o" or tile_char == 'b':
+        if tile_char == "o" or tile_char == "t" or tile_char == 'b':
           room_num = str(random.randint(1, self.NUM_ROOMS))
+
           door_string = self.get_door_string(y, x)
-          self.rooms[y][x] = Room(f"assets/rooms/{room_num}/obstacles.txt", f"assets/rooms/{room_num}/enemies.txt", door_string)
+          is_trader_room = (tile_char == "t")
+          self.rooms[y][x] = Room(f"assets/rooms/{room_num}/obstacles.txt",
+                                   f"assets/rooms/{room_num}/enemies.txt", 
+                                   f"assets/rooms/trader.txt", 
+                                   door_string,
+                                   is_trader_room)
 
   def get_door_string(self, y, x):
     res = ""

@@ -16,10 +16,10 @@ class Enemy:
         self.animation = animation
         self.death_animation = death_animation
         self.hitbox = Rectangle(self.rect.x + (self.rect.width - 90) / 2, self.rect.y + self.rect.height - 60, 90, 60)
-        self.health = hp  # Add health attribute
+        self.health = hp  
         self.maxHealth = self.health
-        self.is_alive = True  # Flag to track if the enemy is alive
-        self.is_dying = False  # Flag to track if the enemy is in the process of dying
+        self.is_alive = True 
+        self.is_dying = False  
         self.death_timer = 1
 
     def update(self, player, rects):

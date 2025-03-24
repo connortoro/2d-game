@@ -43,12 +43,11 @@ class Player:
         """================================= BASICS ================================="""
         sprite_width = 96.0 * 2.5
         sprite_height = 96.0 * 2.5
-        self.rect = Rectangle(W / 2.0 - sprite_width / 2.0, H / 2.0 - sprite_height / 2.0, sprite_width, sprite_height)
+        self.rect = Rectangle(W / 2.0 - sprite_width / 2.0 , H / 2.0 - sprite_height / 2.0, sprite_width, sprite_height)
         self.vel = Vector2(0.0, 0.0)
         self.sprite = texture
         self.dir = RIGHT  # right
         self.death = load_texture("assets/player_sheet/dead.png")
-        self.sword = load_texture("assets/textures/sword.png")
 
         feet_width = 10.0 * 4  
         feet_height = 8.0 * 6  # Make collision box shorter, just for feet
@@ -60,6 +59,8 @@ class Player:
             feet_height
         )
 
+        self.in_dialog= False
+        self.dialog_npc = None
         """================================= ANIMATIONS ================================="""
         self.animations = {
             playerState.IDLE: Animation(1, 5, 1, 0, 96, 0.1, 0.1, REPEATING, 96, 96),
@@ -84,10 +85,11 @@ class Player:
 
         """================================= PLAYER STATS ================================="""
         self.health = 100
-        self.max_health = 100
+        self.max_health = 150
         self.coins = 0
         self.inventory = []
         self.position = (0, 0)
+        self.score = 0
 
         """================================= DAMAGE EFFECTS ================================="""
         self.damage_timer = 0
@@ -270,13 +272,23 @@ class Player:
                 self.hitbox.height + self.attack_range  # Taller than player
             )
         
-        # Debug: Uncomment to see attack hitbox
-        draw_rectangle_lines_ex(attack_rect, 1, BLUE)
-        
-        # Check for collisions with enemies and apply damage
         if attack_rect:
             for enemy in enemies:
                 if check_collision_recs(attack_rect, enemy.hitbox):
                     enemy.health -= self.dmg
-                    # Optional: Add hit effect or animation
-                    enemy.damage_timer = time.time()  # If enemy has a damage timer like player
+                    if enemy.health <= 0:
+                        self.score += enemy.maxHealth
+
+    def increase_health(self, amount):
+        self.health = min(self.max_health, self.health + amount)
+        print(f"Health increased to {self.health}")
+
+    def increase_speed(self, amount):
+        self.vel.x += amount
+        self.vel.y += amount
+        print(f"Speed increased to {self.vel.x}, {self.vel.y}")
+
+    def increase_attack(self, amount):
+        self.dmg += amount
+        print(f"Attack increased to {self.dmg}")
+    
