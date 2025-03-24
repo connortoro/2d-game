@@ -14,7 +14,7 @@ class PlayerUI:
 
     def draw(self, floor):
         self.draw_health_bar()
-        self.draw_inventory_bar()
+        #self.draw_inventory_bar()
         self.draw_minimap(floor)
         self.draw_score()
 

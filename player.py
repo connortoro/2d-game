@@ -148,11 +148,10 @@ class Player:
             if hasattr(self, 'attacking') and self.attacking and self.attack_animation:
                 attack_source = self.attack_animation.animation_frame_horizontal()
                 
-                # Flip attack animation if facing left
                 
 
             # Draw hitboxes for debugging
-            draw_rectangle_lines_ex(self.hitbox, 1, RED)
+            #draw_rectangle_lines_ex(self.hitbox, 1, RED)
             #draw_rectangle_lines_ex(self.rect, 1, RED)
 
     def handle_movement(self):
@@ -292,3 +291,5 @@ class Player:
         self.dmg += amount
         print(f"Attack increased to {self.dmg}")
     
+    def get_score(self):
+        return self.score

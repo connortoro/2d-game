@@ -69,8 +69,8 @@ class Enemy:
         source = self.animation.animation_frame_horizontal()
         origin = Vector2(0.0, 0.0)
         draw_texture_pro(self.sheet, source, self.rect, origin, 0.0, WHITE)
-        if not self.is_dying:
-            draw_rectangle_lines_ex(self.hitbox, 1, RED)
+        #if not self.is_dying:
+            #draw_rectangle_lines_ex(self.hitbox, 1, RED)
     
     def draw_health_bar(self):
         draw_rectangle(self.rect.x+25, self.rect.y+4, 80, 5, RED)
