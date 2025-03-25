@@ -5,14 +5,21 @@ from ui import PlayerUI
 from npc import NPC
 from enum import Enum
 import time
+import os
+from raylibpy import load_sound, play_sound, unload_sound
 
 #Init
 init_window(W, H, "My Game")
+init_audio_device()
 player_texture = load_texture("assets/player_sheet/player.png")
 player = Player(player_texture)
 playerui = PlayerUI(player)
 floor = Floor()
 
+# Load background music
+music = load_music_stream("assets/audio/rpg-city-8381.mp3") 
+play_music_stream(music)
+set_music_volume(music, 0.1)
 # Game state enum
 class GameState(Enum):
     PLAYING = 0
@@ -33,6 +40,10 @@ def restart_game():
 # Main game loop
 
 while not window_should_close():
+    # Update music stream if music is loaded
+    if music:
+        update_music_stream(music)
+
     # Check for player death and update game state
     if game_state == GameState.PLAYING and player.health <= 0:
         game_over_timer = time.time()
@@ -59,6 +70,7 @@ while not window_should_close():
     
     end_drawing()
 
-playerui.unload()
+# Unload resources
 unload_texture(player_texture)
+unload_music_stream(music)  # Unload the music stream
 close_window()
