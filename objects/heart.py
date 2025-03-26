@@ -7,6 +7,8 @@ class Heart:
 
     def update(self, player, room):
         if check_collision_recs(self.rect, player.hitbox):
+            health_pickup = load_sound("assets/audio/health_pickup.mp3")
+            play_sound(health_pickup)
             player.heal(10)
             room.objects.remove(self)
 

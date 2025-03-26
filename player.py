@@ -48,7 +48,7 @@ class Player:
         self.sprite = texture
         self.dir = RIGHT  # right
         self.death = load_texture("assets/player_sheet/dead.png")
-        self.attack = load_sound("assets/audio/attacksound1.mp3")
+        self.attack = load_sound("assets/audio/sword_swing.mp3")
         feet_width = 10.0 * 4  
         feet_height = 8.0 * 6  # Make collision box shorter, just for feet
         self.hitbox_offset = 50
@@ -104,9 +104,12 @@ class Player:
         self.attack_angle = 90  # Angle of the attack arc (in degrees)
 
     def take_damage(self, damage_amount):
+        hurt = load_sound("assets/audio/hurt.mp3")
+        play_sound(hurt)
         self.health = max(0, self.health - damage_amount)  # take damage
         self.damage_timer = time.time()  # start timer
         if self.health == 0:  # player died
+            stop_sound(hurt)
             self.state = playerState.DEAD  # set player state to dead
     
     def heal(self, n):

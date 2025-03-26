@@ -12,7 +12,7 @@ class PlayerUI:
         self.health_bar_texture = load_texture("assets/ui_textures/health_bar.png")
         self.inventory_bar_texture = load_texture("assets/ui_textures/inventory_bar.png")
         self.inv_selected_slot = None #currently selected slot
-
+        self.paused = False
     def draw(self, floor):
         self.draw_health_bar()
         #self.draw_inventory_bar()
@@ -114,7 +114,10 @@ class PlayerUI:
 
 
     def update(self):
-        self.inventory_key_input()
+        if is_key_pressed(KEY_ESCAPE):  #pause key
+            self.paused = not self.paused
+        if not self.paused:
+            self.inventory_key_input()
 
     def unload(self):
         unload_texture(self.health_bar_texture)
@@ -123,6 +126,36 @@ class PlayerUI:
 
     def update_health(self, new_health):
         self.player.health = clamp(new_health, 0, self.player.max_health)
+
+    def draw_main_menu(self, start_game_func, quit_game_func):
+        draw_rectangle(0, 0, W, H, Color(0, 0, 0, 255)) #background (WIP)
+
+        #title
+        title = "DUNGEON CRAWLER"
+        title_text_width = measure_text(title, 80)
+        draw_text(title, W / 2 - title_text_width / 2 , H / 4, 80, RED)
+
+        #start button
+        start_button = Rectangle(W / 2 - 100, H / 2 - 50, 200, 50)
+        draw_rectangle_rec(start_button, DARKGRAY)
+        start_text = "Start Game"
+        start_text_width = measure_text(start_text, 30)
+        draw_text(start_text, start_button.x + (start_button.width / 2) - (start_text_width / 2), start_button.y + 10, 30, WHITE)
+
+        #quit button
+        quit_button = Rectangle(W / 2 - 100, H / 2 + 50, 200, 50)
+        draw_rectangle_rec(quit_button, DARKGRAY)
+        quit_text = "Quit Game"
+        quit_text_width = measure_text(quit_text, 30)
+        draw_text(quit_text, quit_button.x + (quit_button.width / 2) - (quit_text_width / 2), quit_button.y + 10, 30, WHITE)
+
+        
+        if is_mouse_button_pressed(MOUSE_LEFT_BUTTON): #gets player click position
+            mouse_pos = get_mouse_position()
+            if check_collision_point_rec(mouse_pos, start_button): #if click on start button
+                start_game_func()  #start the game
+            elif check_collision_point_rec(mouse_pos, quit_button): #if click on quit button
+                quit_game_func()  #qsuit the game
 
     def draw_game_over(self, restart_func):
         restart_button = Rectangle(W/2 - 100, H/2 + 100, 200, 50)
@@ -149,6 +182,31 @@ class PlayerUI:
                 if check_collision_point_rec(mouse_pos, restart_button):
                     restart_func()
 
+    def draw_pause_menu(self, resume_func, menu_func):
+        draw_rectangle(W // 4, H // 4, W // 2, H // 2, DARKGRAY) 
+        draw_text("Paused", W // 2 - 50, H // 4 + 20, 40, WHITE)
+
+        resume_button = Rectangle(W // 2 - 75, H // 4 + 80, 150, 40)
+        settings_button = Rectangle(W // 2 - 75, H // 4 + 130, 150, 40)
+        quit_button = Rectangle(W // 2 - 75, H // 4 + 180, 150, 40)
+
+        draw_rectangle_rec(resume_button, LIGHTGRAY)
+        draw_rectangle_rec(settings_button, LIGHTGRAY)
+        draw_rectangle_rec(quit_button, LIGHTGRAY)
+
+        draw_text("Resume", W // 2 - 40, H // 4 + 90, 20, BLACK)
+        draw_text("Settings", W // 2 - 40, H // 4 + 140, 20, BLACK)
+        draw_text("Quit", W // 2 - 40, H // 4 + 190, 20, BLACK)
+
+
+        if is_mouse_button_pressed(MOUSE_LEFT_BUTTON):
+            mouse_pos = get_mouse_position()
+            if check_collision_point_rec(mouse_pos, resume_button): #resume game
+                resume_func()
+            elif check_collision_point_rec(mouse_pos, settings_button): #settings button
+                pass #placeholder
+            elif check_collision_point_rec(mouse_pos, quit_button): #quit
+                menu_func()  # sends to main menu
     def reset(self):
         """Reset the player's UI to its initial state."""
         self.player.health = self.player.max_health

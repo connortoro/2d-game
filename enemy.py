@@ -81,6 +81,8 @@ class Enemy:
 
 
     def take_damage(self, damage):
+        stab = load_sound("assets/audio/stab.mp3")
+        play_sound(stab)
         self.health -= damage
         if self.health <= 0:
             self.is_dying = True  # Start death process

@@ -7,6 +7,8 @@ class Gold:
 
     def update(self, player, room):
         if check_collision_recs(self.rect, player.hitbox):
+            coin_pickup = load_sound("assets/audio/coin_pickup.mp3")
+            play_sound(coin_pickup)
             player.gold = player.gold + 1
             room.objects.remove(self)
 
