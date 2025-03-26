@@ -1,6 +1,7 @@
 from raylibpy import *
 from player import Player, W, H
 from animation import Animation, REPEATING
+import time
 
 class PlayerUI:
     mm_offset = (50, 100)
@@ -17,6 +18,7 @@ class PlayerUI:
         #self.draw_inventory_bar()
         self.draw_minimap(floor)
         self.draw_score()
+        self.draw_instructions()
 
     def draw_score(self):
         draw_text(f"Score: {str(self.player.score)}", 1000, 830, 40, BLACK)
@@ -122,9 +124,49 @@ class PlayerUI:
     def update_health(self, new_health):
         self.player.health = clamp(new_health, 0, self.player.max_health)
 
+    def draw_game_over(self, restart_func):
+        restart_button = Rectangle(W/2 - 100, H/2 + 100, 200, 50)
+
+        #draw semi-transparent backgorund
+        draw_rectangle(0, 0, W, H, Color(0, 0, 0, 200))
+
+        #draw game over text
+        game_over_text = "GAME OVER"
+        score_text = f"Total score: {self.player.get_score()}"
+        game_over_text_width = measure_text(game_over_text, 60)
+        score_text_width = measure_text(score_text, 40)
+        draw_text(game_over_text, W/2 - game_over_text_width/2, H/2 - 100, 60, RED)
+        draw_text(score_text, W/2 - score_text_width/2, H/2 - 50, 40, WHITE)  # Centered properly
+
+        draw_rectangle_rec(restart_button, DARKGRAY)
+        restart_text = "Restart"
+        restart_width = measure_text(restart_text, 30)
+        draw_text(restart_text, restart_button.x + (restart_button.width/2) - restart_width/2, 
+                restart_button.y + 10, 30, WHITE)
+        
+        if is_mouse_button_pressed(MOUSE_LEFT_BUTTON):
+                mouse_pos = get_mouse_position()
+                if check_collision_point_rec(mouse_pos, restart_button):
+                    restart_func()
+
     def reset(self):
         """Reset the player's UI to its initial state."""
         self.player.health = self.player.max_health
         self.inv_selected_slot = None
         self.draw_health_bar()
         self.draw_inventory_bar()
+
+    def draw_instructions(self):
+        instructions_text = [
+            "Controls:",
+            "W, A, S, D: Move",
+            "Arrow Up, Down, Left, Right: Attack Direction",
+            "E: Interact",
+            "X: Exit Dialog",
+            "Kill as many enemies as you can before dying!"
+        ]
+        instructions_background_height = 140
+        draw_rectangle(20, H - instructions_background_height - 10, 500, instructions_background_height, Color(0, 0, 0, 180))
+        #draws instructions
+        for i, line in enumerate(instructions_text):
+            draw_text(line, 25, H - 140 + (i * 20), 20, WHITE)

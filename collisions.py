@@ -55,9 +55,4 @@ def check_obstacle_collisions(self, obstacles):
                 else:  # player below obstacle
                     self.rect.y -= overlap_y + buffer
                 self.vel.y = 0
-                
-            # Update hitbox position immediately
-            self.hitbox.x = self.rect.x + (self.rect.width - self.hitbox.width) / 2
-            self.hitbox.y = self.rect.y + self.rect.height - self.hitbox.height 
-            
-            # No need for second collision check as it could cause oscillation
+            return

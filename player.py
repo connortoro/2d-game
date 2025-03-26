@@ -90,6 +90,7 @@ class Player:
         self.inventory = []
         self.position = (0, 0)
         self.score = 0
+        self.gold = 0
 
         """================================= DAMAGE EFFECTS ================================="""
         self.damage_timer = 0
@@ -107,6 +108,9 @@ class Player:
         self.damage_timer = time.time()  # start timer
         if self.health == 0:  # player died
             self.state = playerState.DEAD  # set player state to dead
+    
+    def heal(self, n):
+        self.health = min(self.max_health, self.health + n)
 
     def update(self, room: Room):
 

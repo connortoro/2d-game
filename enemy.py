@@ -1,6 +1,9 @@
 from raylibpy import *
 from animation import Animation, REPEATING, ONESHOT
 from collisions import *
+from objects.heart import Heart
+from objects.gold import Gold
+import random
 
 class Enemy:
     W = 32
@@ -22,14 +25,15 @@ class Enemy:
         self.is_dying = False  
         self.death_timer = 1
 
-    def update(self, player, rects):
+    def update(self, player, rects, room):
 
         if not self.is_alive:
             return
         
         if self.health <= 0 and not self.is_dying:
             self.is_dying = True  
-            self.start_death_animation()  
+            self.start_death_animation()
+            self.drop_item(room) 
 
         if self.is_dying and self.death_timer > 0:
             self.animation.animation_update()
@@ -69,8 +73,6 @@ class Enemy:
         source = self.animation.animation_frame_horizontal()
         origin = Vector2(0.0, 0.0)
         draw_texture_pro(self.sheet, source, self.rect, origin, 0.0, WHITE)
-        #if not self.is_dying:
-            #draw_rectangle_lines_ex(self.hitbox, 1, RED)
     
     def draw_health_bar(self):
         draw_rectangle(self.rect.x+25, self.rect.y+4, 80, 5, RED)
@@ -85,3 +87,14 @@ class Enemy:
 
     def start_death_animation(self):
         self.animation = self.death_animation
+
+    def drop_item(self, room):
+        roll = random.randint(0, 8)
+        if roll > 4:
+            x = self.rect.x + (self.rect.width / 2.0)
+            y = self.rect.y + (self.rect.height / 2.0)
+            if roll > 6:
+                room.objects.append(Heart(x, y, room.texture))
+            else:
+                room.objects.append(Gold(x, y, room.texture))
+        

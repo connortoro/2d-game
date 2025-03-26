@@ -5,7 +5,7 @@ from raylibpy import *
 
 class Floor:
   NUM_FLOORS = 1 #TODO CHANGE AS FLOORS & ROOMS ARE ADDED
-  NUM_ROOMS = 4 
+  NUM_ROOMS = 5
 
   def __init__(self):
     self.rooms = []
@@ -34,16 +34,14 @@ class Floor:
         self.rooms.append(line.strip().split(" "))
     for y, row in enumerate(self.rooms):
       for x, tile_char in enumerate(row):
-        if tile_char == "o" or tile_char == "t" or tile_char == 'b':
+        if tile_char == "o":
           room_num = str(random.randint(1, self.NUM_ROOMS))
-
           door_string = self.get_door_string(y, x)
-          is_trader_room = (tile_char == "t")
-          self.rooms[y][x] = Room(f"assets/rooms/{room_num}/obstacles.txt",
-                                   f"assets/rooms/{room_num}/enemies.txt", 
-                                   f"assets/rooms/trader.txt", 
-                                   door_string,
-                                   is_trader_room)
+          self.rooms[y][x] = Room(f"assets/rooms/{room_num}/obstacles.txt", f"assets/rooms/{room_num}/enemies.txt", door_string,)
+        elif tile_char == 's':
+          door_string = self.get_door_string(y, x)
+          self.rooms[y][x] = Room(f"assets/rooms/0/obstacles.txt", f"assets/rooms/0/enemies.txt", door_string,)
+
 
   def get_door_string(self, y, x):
     res = ""
