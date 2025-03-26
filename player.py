@@ -48,7 +48,7 @@ class Player:
         self.sprite = texture
         self.dir = RIGHT  # right
         self.death = load_texture("assets/player_sheet/dead.png")
-
+        self.attack = load_sound("assets/audio/attacksound1.mp3")
         feet_width = 10.0 * 4  
         feet_height = 8.0 * 6  # Make collision box shorter, just for feet
         self.hitbox_offset = 50
@@ -84,7 +84,7 @@ class Player:
         self.current_animation = self.animations[self.state]  # default animation
 
         """================================= PLAYER STATS ================================="""
-        self.health = 100
+        self.health = 150
         self.max_health = 150
         self.coins = 0
         self.inventory = []
@@ -244,7 +244,7 @@ class Player:
 
     def perform_attack(self, enemies, dir):
         attack_rect = None
-        
+        play_sound(self.attack)
         # Create attack rectangle based on direction
         if dir == 'N':  # North/Up
             attack_rect = Rectangle(
