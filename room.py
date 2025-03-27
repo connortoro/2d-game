@@ -2,60 +2,63 @@ from raylibpy import *
 from enemy import Enemy
 from animation import Animation, REPEATING, ONESHOT
 from npc import NPC
+import textures
 
 class Room:
-    texture = None
     empty_grid = None 
     scale = 100
     tile_size = 16
 
     tile_key = {
-        'tl': (0, 0),
-        't': (1, 0),
-        'tr': (3, 0),
-        'l': (0, 1),
-        'r': (9, 1),
-        'bl': (0, 4),
-        'br': (3, 4),
+        'tl': (9, 2),
+        't': (5, 2),
+        'tr': (8, 2),
+        'l': (6, 1),
+        'r': (4, 1),
+        'bl': (9, 1),
+        'br': (8, 1),
         'o': (1, 1),
-        'b': (1, 4),
+        'b': (5, 0),
         'x': (2, 3),
         's': (7, 1),
+        'itl': (0, 0),
+        'itr': (2 ,0),
+        'it': (1,0),
+        'il': (0, 1),
+        'ir': (2, 1),
     }
 
     door_key = {
-        'N': (7, 0),
-        'S': (7, 0),
-        'E': (9, 0),
-        'W': (9, 0)
+        'N': (10, 4),
+        'S': (10, 4),
+        'E': (5, 1),
+        'W': (5, 1)
     }
 
     door_dest = {
-        'N': (6, -.2),
-        'S': (6, 6.7),
-        'E': (12.6, 3.3),
-        'W': (.25, 3.3)
+        'N': (6, 0),
+        'S': (6, 7),
+        'E': (12, 3),
+        'W': (0, 3)
     }
 
     # Initializes floor texture and empty grid once
     @classmethod
     def initialize(cls):
-        if cls.texture is None:
-            cls.texture = load_texture("assets/textures/tileset_blue.png")
         if cls.empty_grid is None:
             cls.empty_grid = [
                 ["tl", "t", "t", "t", "t", "t", "t", "t", "t", "t", "t", "t", "tr"],
-                ["l",  "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "r"],
-                ["l",  "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "r"],
-                ["l",  "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "r"],
-                ["l",  "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "r"],
-                ["l",  "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "r"],
-                ["l",  "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "o", "r"],
+                ["l",  "itl", "it", "it", "it", "it", "it", "it", "it", "it", "it", "itr", "r"],
+                ["l",  "il", "o", "o", "o", "o", "o", "o", "o", "o", "o", "ir", "r"],
+                ["l",  "il", "o", "o", "o", "o", "o", "o", "o", "o", "o", "ir", "r"],
+                ["l",  "il", "o", "o", "o", "o", "o", "o", "o", "o", "o", "ir", "r"],
+                ["l",  "il", "o", "o", "o", "o", "o", "o", "o", "o", "o", "ir", "r"],
+                ["l",  "il", "o", "o", "o", "o", "o", "o", "o", "o", "o", "ir", "r"],
                 ["bl", "b", "b", "b", "b", "b", "b", "b", "b", "b", "b", "b", "br"]
             ]
 
     def __init__(self, obstacles_path, enemies_path, door_string):
-        if Room.texture is None:
+        if Room.empty_grid is None:
             Room.initialize()
 
         self.door_string = door_string
@@ -106,7 +109,7 @@ class Room:
                 source_x, source_y = self.tile_key[tile_char]
                 source_rect = Rectangle(source_x * self.tile_size, source_y * self.tile_size, self.tile_size, self.tile_size)
                 dest_rect = Rectangle(dest_x * self.scale, dest_y * self.scale, self.scale, self.scale)
-                draw_texture_pro(self.texture, source_rect, dest_rect, Vector2(0,0), 0, WHITE)
+                draw_texture_pro(textures.room_texture, source_rect, dest_rect, Vector2(0,0), 0, WHITE)
 
     def draw_obstacles(self):
         for dest_y, row in enumerate(self.obstacle_grid):
@@ -115,7 +118,7 @@ class Room:
                 source_x, source_y = self.tile_key[tile_char]
                 source_rect = Rectangle(source_x * self.tile_size, source_y * self.tile_size, self.tile_size, self.tile_size)
                 dest_rect = Rectangle(dest_x * self.scale, dest_y * self.scale, self.scale, self.scale)
-                draw_texture_pro(self.texture, source_rect, dest_rect, Vector2(0,0), 0, WHITE)
+                draw_texture_pro(textures.old_room_texture, source_rect, dest_rect, Vector2(0,0), 0, WHITE)
   
     def draw_enemies(self):
         for enemy in self.enemies:
@@ -128,24 +131,20 @@ class Room:
 
             source_rect = Rectangle(source_x * self.tile_size, source_y * self.tile_size, self.tile_size, self.tile_size)
             dest_rect = Rectangle(dest_x * self.scale, dest_y * self.scale,self.scale, self.scale)
-            draw_texture_pro(self.texture, source_rect, dest_rect, Vector2(0,0), 0, WHITE)
+            draw_texture_pro(textures.room_texture, source_rect, dest_rect, Vector2(0,0), 0, WHITE)
           
     def gen_rectangles(self):
         for y, row in enumerate(self.obstacle_grid):
             for x, tile_char in enumerate(row):
-                if tile_char == 'x':
-                    rect = Rectangle(x * self.scale, y * self.scale, self.scale, self.scale)
-                    self.rectangles.append(rect)
                 if tile_char == 's':
                     rect = Rectangle(x * self.scale, y * self.scale, self.scale, self.scale)
                     self.spikes.append(rect)
+                elif not tile_char == 'o':
+                    rect = Rectangle(x * self.scale, y * self.scale, self.scale, self.scale)
+                    self.rectangles.append(rect)
         for dir in self.door_string:
             x, y = self.door_dest[dir]
-            if dir == "N" or dir == "S":
-                x += .3
-                self.doors.append(Rectangle(x*self.scale - 10, y*self.scale + 30, 40, 40))
-            else:
-                self.doors.append(Rectangle(x*self.scale - 10, y*self.scale + 30, 40, 80))
+            self.doors.append(Rectangle(x*self.scale , y*self.scale , self.scale, self.scale))
 
     def gen_enemies(self):
         for y, row in enumerate(self.enemy_grid):
