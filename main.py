@@ -1,12 +1,11 @@
 from raylibpy import *
 from floor import Floor
-from player import Player, W, H
+from player import Player
 from ui import PlayerUI
 from enum import Enum
 import time
 import textures
-from raylibpy import load_sound, play_sound, unload_sound
-import os
+from config import *
 from raylibpy import load_sound, play_sound, unload_sound
 
 #Init

@@ -3,30 +3,10 @@ from enemy import Enemy
 from animation import Animation, REPEATING, ONESHOT
 from npc import NPC
 import textures
+import json
+from config import *
 
 class Room:
-    empty_grid = None 
-    scale = 100
-    tile_size = 16
-
-    tile_key = {
-        'tl': (9, 2),
-        't': (5, 2),
-        'tr': (8, 2),
-        'l': (6, 1),
-        'r': (4, 1),
-        'bl': (9, 1),
-        'br': (8, 1),
-        'o': (1, 1),
-        'b': (5, 0),
-        'x': (2, 3),
-        's': (7, 1),
-        'itl': (0, 0),
-        'itr': (2 ,0),
-        'it': (1,0),
-        'il': (0, 1),
-        'ir': (2, 1),
-    }
 
     door_key = {
         'N': (10, 4),
@@ -36,144 +16,144 @@ class Room:
     }
 
     door_dest = {
-        'N': (6, 0),
-        'S': (6, 7),
-        'E': (12, 3),
-        'W': (0, 3)
+        'N': (7, 0),
+        'S': (7, 8),
+        'E': (14, 4),
+        'W': (0, 4)
     }
 
     # Initializes floor texture and empty grid once
-    @classmethod
-    def initialize(cls):
-        if cls.empty_grid is None:
-            cls.empty_grid = [
-                ["tl", "t", "t", "t", "t", "t", "t", "t", "t", "t", "t", "t", "tr"],
-                ["l",  "itl", "it", "it", "it", "it", "it", "it", "it", "it", "it", "itr", "r"],
-                ["l",  "il", "o", "o", "o", "o", "o", "o", "o", "o", "o", "ir", "r"],
-                ["l",  "il", "o", "o", "o", "o", "o", "o", "o", "o", "o", "ir", "r"],
-                ["l",  "il", "o", "o", "o", "o", "o", "o", "o", "o", "o", "ir", "r"],
-                ["l",  "il", "o", "o", "o", "o", "o", "o", "o", "o", "o", "ir", "r"],
-                ["l",  "il", "o", "o", "o", "o", "o", "o", "o", "o", "o", "ir", "r"],
-                ["bl", "b", "b", "b", "b", "b", "b", "b", "b", "b", "b", "b", "br"]
-            ]
 
-    def __init__(self, obstacles_path, enemies_path, door_string):
-        if Room.empty_grid is None:
-            Room.initialize()
-
+    def __init__(self, map, door_string):
+        with open(map, 'r') as file:
+            self.map = json.load(file)
         self.door_string = door_string
+
         self.doors = []
         self.rectangles = []
         self.spikes = []
         self.objects = []
-
-        self.obstacle_grid = []
-        with open(obstacles_path) as file:
-            for line in file:
-                self.obstacle_grid.append(line.strip().split(" "))
-        self.gen_rectangles()
-
         self.enemies = []
-        self.enemy_grid = []
-        with open(enemies_path) as file:
-            for line in file:
-                self.enemy_grid.append(line.strip().split())
-        self.gen_enemies()
+
+        self.gen()
 
     def update(self, player):
         self.update_enemies(player)
         self.update_objects(player)
 
-    def draw(self):
-        self.draw_empty_room()
-        self.draw_doors()
-        self.draw_obstacles()
-        self.draw_enemies()
-        self.draw_objects()
-
     def update_enemies(self, player):
         for enemy in self.enemies:
             enemy.update(player, self.rectangles, self)
-    
+
     def update_objects(self, player):
         for object in self.objects:
             object.update(player, self)
 
+    def draw(self):
+        self.draw_room()
+        self.draw_doors()
+        self.draw_enemies()
+        self.draw_objects()
+
+    def draw_room(self):
+        for layer in self.map['layers']:
+            if layer['type'] == 'tilelayer':
+                for i, gid in enumerate(layer['data']):
+                    if gid == 0: continue
+
+                    dest_x = i % COLS
+                    dest_y = i // COLS
+                    dest_rect = Rectangle(dest_x*SCALE, dest_y*SCALE, SCALE, SCALE)
+
+                    tileset, j = self.get_tileset_name(gid)
+
+                    src_x = (j % textures.src_map[tileset]['width']) * TILE_SIZE
+                    src_y = (j // textures.src_map[tileset]['width']) * TILE_SIZE
+                    src_rect = Rectangle(src_x, src_y, TILE_SIZE, TILE_SIZE)
+
+                    draw_texture_pro(textures.src_map[tileset]['texture'], src_rect, dest_rect, Vector2(0, 0), 0.0, WHITE)
+
     def draw_objects(self):
         for object in self.objects:
             object.draw()
-      
-    def draw_empty_room(self):
-        for dest_y, row in enumerate(self.empty_grid):
-            for dest_x, tile_char in enumerate(row):
-                source_x, source_y = self.tile_key[tile_char]
-                source_rect = Rectangle(source_x * self.tile_size, source_y * self.tile_size, self.tile_size, self.tile_size)
-                dest_rect = Rectangle(dest_x * self.scale, dest_y * self.scale, self.scale, self.scale)
-                draw_texture_pro(textures.room_texture, source_rect, dest_rect, Vector2(0,0), 0, WHITE)
 
-    def draw_obstacles(self):
-        for dest_y, row in enumerate(self.obstacle_grid):
-            for dest_x, tile_char in enumerate(row):
-                if tile_char == 'o': continue
-                source_x, source_y = self.tile_key[tile_char]
-                source_rect = Rectangle(source_x * self.tile_size, source_y * self.tile_size, self.tile_size, self.tile_size)
-                dest_rect = Rectangle(dest_x * self.scale, dest_y * self.scale, self.scale, self.scale)
-                draw_texture_pro(textures.old_room_texture, source_rect, dest_rect, Vector2(0,0), 0, WHITE)
-  
     def draw_enemies(self):
         for enemy in self.enemies:
             enemy.draw()
-        
+
     def draw_doors(self):
         for dir in self.door_string:
-            source_x, source_y = self.door_key[dir]
             dest_x, dest_y = self.door_dest[dir]
+            source_rect = None
+            if dir == 'N' or dir == 'S':
+                source_rect = Rectangle(176, 176, TILE_SIZE, TILE_SIZE)
+            else:
+                source_rect = Rectangle(208, 144, TILE_SIZE, TILE_SIZE)
+            dest_rect = Rectangle(dest_x * SCALE, dest_y * SCALE,SCALE, SCALE)
+            draw_texture_pro(textures.base, source_rect, dest_rect, Vector2(0,0), 0, WHITE)
 
-            source_rect = Rectangle(source_x * self.tile_size, source_y * self.tile_size, self.tile_size, self.tile_size)
-            dest_rect = Rectangle(dest_x * self.scale, dest_y * self.scale,self.scale, self.scale)
-            draw_texture_pro(textures.room_texture, source_rect, dest_rect, Vector2(0,0), 0, WHITE)
-          
-    def gen_rectangles(self):
-        for y, row in enumerate(self.obstacle_grid):
-            for x, tile_char in enumerate(row):
-                if tile_char == 's':
-                    rect = Rectangle(x * self.scale, y * self.scale, self.scale, self.scale)
-                    self.spikes.append(rect)
-                elif not tile_char == 'o':
-                    rect = Rectangle(x * self.scale, y * self.scale, self.scale, self.scale)
-                    self.rectangles.append(rect)
+    def gen(self):
+        self.gen_enemies(self.map['layers'][2])
+        self.gen_rectangles(self.map['layers'][1])
+        self.gen_doors()
+
+    def gen_rectangles(self, layer):
+        for i, gid in enumerate(layer['data']):
+            if gid == 0:
+                continue
+            else:
+                x = (i % COLS) * SCALE
+                y = (i // COLS) * SCALE
+                self.rectangles.append(Rectangle(x, y, SCALE, SCALE))
+
+    def gen_doors(self):
         for dir in self.door_string:
             x, y = self.door_dest[dir]
-            self.doors.append(Rectangle(x*self.scale , y*self.scale , self.scale, self.scale))
+            self.doors.append(Rectangle((x*SCALE)-4 , (y*SCALE)-4 , SCALE+8, SCALE+8))
 
-    def gen_enemies(self):
-        for y, row in enumerate(self.enemy_grid):
-            for x, tile_char in enumerate(row):
+    def gen_enemies(self, layer):
+        for entity in layer['objects']:
+            x = entity['x'] * (SCALE / TILE_SIZE)
+            y = entity['y'] * (SCALE / TILE_SIZE)
 
-                if tile_char == '1':
-                    animation = Animation(0, 3, 1, 0, 16, 0.2, 0.2, REPEATING, 32, 32)
-                    death_animation = Animation(0, 5, 1, 8, 16, .2, .2, ONESHOT, 32, 32)
-                    enemy = Enemy("assets/enemy_sheets/LV1_BOSS.png", x * self.scale, y * self.scale, 70, 120, 30, animation, death_animation)
-                    self.enemies.append(enemy)
+            print(x, y)
 
-                if tile_char == '2':
-                    animation = Animation(0, 3, 1, 0, 16, 0.2, 0.2, REPEATING, 32, 32)
-                    death_animation = Animation(0, 4, 1, 10, 16, .2, .2, ONESHOT, 32, 32)
-                    enemy = Enemy("assets/enemy_sheets/MINION_1.png", x * self.scale, y * self.scale, 20, 200, 8, animation, death_animation)
-                    self.enemies.append(enemy)
+            if entity['name'] == 'zombie':
+                animation = Animation(0, 3, 1, 0, 16, 0.2, 0.2, REPEATING, 32, 32)
+                death_animation = Animation(0, 5, 1, 8, 16, .2, .2, ONESHOT, 32, 32)
+                enemy = Enemy("assets/enemy_sheets/LV1_BOSS.png", x , y , 70, 120, 30, animation, death_animation)
+                self.enemies.append(enemy)
 
-                if tile_char == '3':
-                    animation = Animation(0, 3, 1, 0, 16, 0.2, 0.2, REPEATING, 32, 32)
-                    death_animation = Animation(0, 4, 1, 10, 16, .2, .2, ONESHOT, 32, 32)
-                    enemy = Enemy("assets/enemy_sheets/MINION_3.png", x * self.scale, y * self.scale, 30, 135, 13, animation, death_animation)
-                    self.enemies.append(enemy)
+            if entity['name'] == 'minion':
+                animation = Animation(0, 3, 1, 0, 16, 0.2, 0.2, REPEATING, 32, 32)
+                death_animation = Animation(0, 4, 1, 10, 16, .2, .2, ONESHOT, 32, 32)
+                enemy = Enemy("assets/enemy_sheets/MINION_1.png", x , y , 20, 200, 8, animation, death_animation)
+                self.enemies.append(enemy)
 
-                if tile_char == '4':
-                    animation = Animation(0, 3, 1, 0, 16, 0.2, 0.2, REPEATING, 32, 32)
-                    death_animation = Animation(0, 4, 1, 10, 16, .2, .2, ONESHOT, 32, 32)
-                    enemy = Enemy("assets/enemy_sheets/MINION_4.png", x * self.scale, y * self.scale, 40, 110, 20, animation, death_animation)
-                    self.enemies.append(enemy)
+            if entity['name'] == 'mummy':
+                animation = Animation(0, 3, 1, 0, 16, 0.2, 0.2, REPEATING, 32, 32)
+                death_animation = Animation(0, 4, 1, 10, 16, .2, .2, ONESHOT, 32, 32)
+                enemy = Enemy("assets/enemy_sheets/MINION_3.png", x, y, 30, 135, 13, animation, death_animation)
+                self.enemies.append(enemy)
 
-                if tile_char == 't':
-                    texture = load_texture("assets/player_sheet/8d-character.png")
-                    self.objects.append(NPC(texture, x*self.scale, y*self.scale))
+            if entity['name'] == 'bat':
+                animation = Animation(0, 3, 1, 0, 16, 0.2, 0.2, REPEATING, 32, 32)
+                death_animation = Animation(0, 4, 1, 10, 16, .2, .2, ONESHOT, 32, 32)
+                enemy = Enemy("assets/enemy_sheets/MINION_4.png", x , y , 40, 110, 20, animation, death_animation)
+                self.enemies.append(enemy)
+
+            if entity['name'] == 'trader':
+                texture = load_texture("assets/player_sheet/8d-character.png")
+                self.objects.append(NPC(texture, x, y))
+
+    def get_tileset_name(self, gid):
+        for tileset in self.map['tilesets']:
+            first_gid = tileset['firstgid']
+            next_gid = (self.map['tilesets'][self.map['tilesets'].index(tileset) + 1]['firstgid']
+                        if self.map['tilesets'].index(tileset) + 1 < len(self.map['tilesets'])
+                        else float('inf'))
+
+            if first_gid <= gid < next_gid:
+                return (tileset['source'], gid-first_gid)
+        return None
+

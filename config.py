@@ -1,0 +1,10 @@
+SCALE = 100
+W = 15*SCALE
+H= 9*SCALE
+
+ROWS = 9
+COLS = 15
+
+TILE_SIZE = 16
+
+

@@ -15,4 +15,4 @@ class Gold:
             room.objects.remove(self)
 
     def draw(self):
-        draw_texture_pro(textures.old_room_texture, Rectangle(13*16, 0, 16, 16), self.rect, Vector2(0, 0), 0, WHITE)
+        draw_texture_pro(textures.old_base, Rectangle(13*16, 0, 16, 16), self.rect, Vector2(0, 0), 0, WHITE)

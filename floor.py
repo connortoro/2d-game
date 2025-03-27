@@ -2,10 +2,11 @@ from room import Room
 from player import Player
 import random
 from raylibpy import *
+from config import *
 
 class Floor:
   NUM_FLOORS = 1 #TODO CHANGE AS FLOORS & ROOMS ARE ADDED
-  NUM_ROOMS = 5
+  NUM_ROOMS = 4
 
   def __init__(self):
     self.rooms = []
@@ -22,13 +23,13 @@ class Floor:
   def draw(self):
     y, x = self.pos
     self.rooms[y][x].draw()
-  
+
   def get_current_room(self):
     y, x = self.pos
     return self.rooms[y][x]
-  
+
   def gen(self):
-    floor_num = random.randint(1, self.NUM_FLOORS) 
+    floor_num = random.randint(1, self.NUM_FLOORS)
     with open(f"assets/floors/{str(floor_num)}.txt") as file:
       for line in file:
         self.rooms.append(line.strip().split(" "))
@@ -37,10 +38,10 @@ class Floor:
         if tile_char == "o":
           room_num = str(random.randint(1, self.NUM_ROOMS))
           door_string = self.get_door_string(y, x)
-          self.rooms[y][x] = Room(f"assets/rooms/{3}/obstacles.txt", f"assets/rooms/{3}/enemies.txt", door_string,)
+          self.rooms[y][x] = Room(f"tiles/{room_num}.json", door_string,)
         elif tile_char == 's':
           door_string = self.get_door_string(y, x)
-          self.rooms[y][x] = Room(f"assets/rooms/0/obstacles.txt", f"assets/rooms/0/enemies.txt", door_string,)
+          self.rooms[y][x] = Room("tiles/0.json", door_string,)
 
 
   def get_door_string(self, y, x):
@@ -54,20 +55,21 @@ class Floor:
     if self.rooms[y][x-1] != "x":
       res += "W"
     return res
-  
+
   def door_check(self, player: Player):
     room: Room = self.get_current_room()
     for enemy in room.enemies:
       if enemy.is_alive:
         return
-      
+
     for door in room.doors:
       if check_collision_recs(player.hitbox, door):
+        print("door colliding")
         if player.rect.y < 100: # N
           y, x = self.pos
           self.pos = (y-1, x)
           self.map[y-1][x] = 'o'
-          player.rect.y = 540
+          player.rect.y = SCALE
         elif player.rect.y > 500: # S
           y, x = self.pos
           self.pos = (y+1, x)
@@ -82,4 +84,4 @@ class Floor:
           y, x = self.pos
           self.pos = (y, x+1)
           self.map[y][x+1] = 'o'
-          player.rect.x = -20
+          player.rect.x = 100

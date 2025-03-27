@@ -3,12 +3,10 @@ from enum import Enum
 from animation import Animation, REPEATING, ONESHOT
 from room import Room  # Import the Room class
 import time
-import math
 from collisions import *
+from config import *
 
 # Dimensions of space
-W = 1300
-H = 900
 
 LEFT = -1
 RIGHT = 1
@@ -48,6 +46,7 @@ class Player:
         self.sprite = texture
         self.dir = RIGHT  # right
         self.death = load_texture("assets/player_sheet/dead.png")
+        feet_width = 10.0 * 4
 
         feet_width = 10.0 * 4
         feet_height = 8.0 * 6  # Make collision box shorter, just for feet
@@ -269,7 +268,7 @@ class Player:
 
     def perform_attack(self, enemies, dir):
         attack_rect = None
-        play_sound(self.attack)
+
         # Create attack rectangle based on direction
         if dir == 'N':  # North/Up
             attack_rect = Rectangle(
