@@ -96,7 +96,7 @@ class Enemy:
             x = self.rect.x + (self.rect.width / 2.0)
             y = self.rect.y + (self.rect.height / 2.0)
             if roll > 6:
-                room.objects.append(Heart(x, y, room.texture))
+                room.objects.append(Heart(x, y))
             else:
-                room.objects.append(Gold(x, y, room.texture))
+                room.objects.append(Gold(x, y))
         

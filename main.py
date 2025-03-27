@@ -2,19 +2,25 @@ from raylibpy import *
 from floor import Floor
 from player import Player, W, H
 from ui import PlayerUI
-from npc import NPC
 from enum import Enum
 import time
-import os
+import textures
 from raylibpy import load_sound, play_sound, unload_sound
 
 #Init
 init_window(W, H, "My Game")
+textures.load_textures()
+
 init_audio_device()
 player_texture = load_texture("assets/player_sheet/player.png")
 player = Player(player_texture)
 playerui = PlayerUI(player)
 floor = Floor()
+
+# Load background music
+music = load_music_stream("assets/audio/rpg-city-8381.mp3") 
+play_music_stream(music)
+set_music_volume(music, 0.1)
 
 # Load background music
 game_music = load_music_stream("assets/audio/floor_1_music.mp3") 
