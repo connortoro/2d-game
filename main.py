@@ -2,14 +2,18 @@ from raylibpy import *
 from floor import Floor
 from player import Player, W, H
 from ui import PlayerUI
-from npc import NPC
 from enum import Enum
 import time
+import textures
+from raylibpy import load_sound, play_sound, unload_sound
 import os
 from raylibpy import load_sound, play_sound, unload_sound
 
 #Init
 init_window(W, H, "My Game")
+init_audio_device()
+textures.load_textures()
+
 init_audio_device()
 player_texture = load_texture("assets/player_sheet/player.png")
 player = Player(player_texture)
@@ -17,7 +21,17 @@ playerui = PlayerUI(player)
 floor = Floor()
 
 # Load background music
-music = load_music_stream("assets/audio/rpg-city-8381.mp3") 
+music = load_music_stream("assets/audio/rpg-city-8381.mp3")
+play_music_stream(music)
+set_music_volume(music, 0.1)
+
+# Load background music
+music = load_music_stream("assets/audio/rpg-city-8381.mp3")
+play_music_stream(music)
+set_music_volume(music, 0.1)
+
+# Load background music
+music = load_music_stream("assets/audio/rpg-city-8381.mp3")
 play_music_stream(music)
 set_music_volume(music, 0.1)
 # Game state enum
@@ -41,6 +55,10 @@ def restart_game():
 
 while not window_should_close():
     # Update music stream if music is loaded
+    # if music:
+    #     update_music_stream(music)
+
+    # Update music stream if music is loaded
     if music:
         update_music_stream(music)
 
@@ -48,16 +66,16 @@ while not window_should_close():
     if game_state == GameState.PLAYING and player.health <= 0:
         game_over_timer = time.time()
         game_state = GameState.GAME_OVER
-    
+
     # Always update everything, regardless of game state
     player.update(floor.get_current_room())
     floor.update(player)
     playerui.update()
-    
+
     # Drawing
     begin_drawing()
-    
-    
+
+
     # Always draw the game
     clear_background(SKYBLUE)
     floor.draw()
@@ -67,7 +85,7 @@ while not window_should_close():
     # Draw game over overlay if in game over state
     if game_state == GameState.GAME_OVER:
         playerui.draw_game_over(restart_game)
-    
+
     end_drawing()
 
 # Unload resources

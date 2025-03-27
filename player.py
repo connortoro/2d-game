@@ -48,8 +48,8 @@ class Player:
         self.sprite = texture
         self.dir = RIGHT  # right
         self.death = load_texture("assets/player_sheet/dead.png")
-        self.attack = load_sound("assets/audio/attacksound1.mp3")
-        feet_width = 10.0 * 4  
+
+        feet_width = 10.0 * 4
         feet_height = 8.0 * 6  # Make collision box shorter, just for feet
         self.hitbox_offset = 50
         self.hitbox = Rectangle(
@@ -73,10 +73,10 @@ class Player:
             playerState.WALKING_DOWN_LEFT: Animation(1, 5, 1, 1, 96, 0.1, 0.1, REPEATING, 96, 96),
             playerState.WALKING_DOWN_RIGHT: Animation(1, 5, 1, 1, 96, 0.1, 0.1, REPEATING, 96, 96),
             playerState.DEAD: Animation(0, 6, 0, 0, 16, 0.1, 0.1, ONESHOT, 64, 64),
-            playerState.ATTACK_RIGHT: Animation(1, 5, 1, 2, 96, 0.1, 0.1, ONESHOT, 96, 96),
-            playerState.ATTACK_LEFT: Animation(1, 5, 1, 2, 96, 0.1, 0.1, ONESHOT, 96, 96, True),
-            playerState.ATTACK_UP: Animation(1, 5, 1, 6, 96, 0.1, 0.1, ONESHOT, 96, 96),
-            playerState.ATTACK_DOWN: Animation(1, 5, 1, 4, 96, 0.1, 0.1, ONESHOT, 96, 96),
+            playerState.ATTACK_RIGHT: Animation(1, 5, 1, 2, 96, 0.075, 0.075, ONESHOT, 96, 96),
+            playerState.ATTACK_LEFT: Animation(1, 5, 1, 2, 96, 0.075, 0.075, ONESHOT, 96, 96, True),
+            playerState.ATTACK_UP: Animation(1, 5, 1, 6, 96, 0.075, 0.075, ONESHOT, 96, 96),
+            playerState.ATTACK_DOWN: Animation(1, 5, 1, 4, 96, 0.075, 0.075, ONESHOT, 96, 96),
         }
 
         self.state = playerState.IDLE  # default state
@@ -91,7 +91,6 @@ class Player:
         self.position = (0, 0)
         self.score = 0
         self.gold = 0
-
         """================================= DAMAGE EFFECTS ================================="""
         self.damage_timer = 0
         self.highlight_duration = 0.7  # duration of red highlight over player
@@ -103,12 +102,27 @@ class Player:
         self.attack_range = 150  # Range of the attack
         self.attack_angle = 90  # Angle of the attack arc (in degrees)
 
+        """===================================== SOUNDS ======================================"""
+        self.attack = load_sound("assets/audio/sword-sound-260274.wav")
+        # set_sound_pitch(self.attack, .7)
+        # set_sound_volume(self.attack, .5)
+
+        self.footstep_sound = load_sound("assets/audio/08_Step_rock_02.wav")
+        set_sound_volume(self.footstep_sound, .45)
+        self.footstep_threshold = 64
+        self.distance_moved = 0
+
+        self.hit_sound = load_sound("assets/audio/Sword Impact Hit 2.wav")
+        set_sound_pitch(self.hit_sound, .8)
+        set_sound_volume(self.hit_sound, .5)
+
+
     def take_damage(self, damage_amount):
         self.health = max(0, self.health - damage_amount)  # take damage
         self.damage_timer = time.time()  # start timer
         if self.health == 0:  # player died
             self.state = playerState.DEAD  # set player state to dead
-    
+
     def heal(self, n):
         self.health = min(self.max_health, self.health + n)
 
@@ -151,8 +165,8 @@ class Player:
             # If attacking, draw the attack animation on top
             if hasattr(self, 'attacking') and self.attacking and self.attack_animation:
                 attack_source = self.attack_animation.animation_frame_horizontal()
-                
-                
+
+
 
             # Draw hitboxes for debugging
             #draw_rectangle_lines_ex(self.hitbox, 1, RED)
@@ -164,12 +178,13 @@ class Player:
         self.vel.x = 0.0
         self.vel.y = 0.0
         speed = 300.0 if is_key_down(KEY_LEFT_SHIFT) else 200.0  # defines speed, increases if shift is pressed
+        diag_speed = speed * .707
 
         movement_keys = {  # dictionary of movements
-            (KEY_A, KEY_W): (Vector2(-speed, -speed), playerState.WALKING_UP_LEFT, LEFT),  # top left
-            (KEY_A, KEY_S): (Vector2(-speed, speed), playerState.WALKING_DOWN_LEFT, LEFT),  # bottom left
-            (KEY_D, KEY_W): (Vector2(speed, -speed), playerState.WALKING_UP_RIGHT, RIGHT),  # top right
-            (KEY_D, KEY_S): (Vector2(speed, speed), playerState.WALKING_DOWN_RIGHT, RIGHT),  # bottom right
+            (KEY_A, KEY_W): (Vector2(-diag_speed, -diag_speed), playerState.WALKING_UP_LEFT, LEFT),  # top left
+            (KEY_A, KEY_S): (Vector2(-diag_speed, diag_speed), playerState.WALKING_DOWN_LEFT, LEFT),  # bottom left
+            (KEY_D, KEY_W): (Vector2(diag_speed, -diag_speed), playerState.WALKING_UP_RIGHT, RIGHT),  # top right
+            (KEY_D, KEY_S): (Vector2(diag_speed, diag_speed), playerState.WALKING_DOWN_RIGHT, RIGHT),  # bottom right
             (KEY_A,): (Vector2(-speed, 0), playerState.WALKING_LEFT, LEFT),  # left
             (KEY_D,): (Vector2(speed, 0), playerState.WALKING_RIGHT, RIGHT),  # right
             (KEY_W,): (Vector2(0, -speed), playerState.WALKING_UP, UP),  # up
@@ -184,12 +199,22 @@ class Player:
                 break  # if condition is met break loop
         else:  # if condition wasn't met, player is idle (no key's pressed)
             self.state = playerState.IDLE
+            self.distance_moved = self.footstep_threshold * .9
 
     def update_position(self):
-        self.rect.x += self.vel.x * get_frame_time()
-        self.rect.y += self.vel.y * get_frame_time()
+        dx = self.vel.x * get_frame_time()
+        dy = self.vel.y * get_frame_time()
+
+        self.rect.x += dx
+        self.rect.y += dy
         self.hitbox.x = self.rect.x + (self.rect.width - self.hitbox.width) / 2
         self.hitbox.y = self.rect.y + self.rect.height - self.hitbox.height - self.hitbox_offset - 30
+
+        # foostep sound update
+        self.distance_moved += vector2_length(Vector2(dx, dy))
+        if self.distance_moved >= self.footstep_threshold:
+            self.distance_moved = 0
+            play_sound(self.footstep_sound)
 
     def update_animation(self):
         self.current_animation = self.animations[self.state]
@@ -240,7 +265,7 @@ class Player:
             self.attack_timer = self.attack_cooldown
             self.attack_state = playerState.ATTACK_DOWN
             self.perform_attack(enemies, 'S')
-        
+
 
     def perform_attack(self, enemies, dir):
         attack_rect = None
@@ -270,17 +295,17 @@ class Player:
         elif dir == 'W':  # West/Left
             attack_rect = Rectangle(
                 self.hitbox.x - self.attack_range,  # Left of player
-                self.hitbox.y - self.attack_range/2 + self.hitbox.height/2,  # Centered vertically 
+                self.hitbox.y - self.attack_range/2 + self.hitbox.height/2,  # Centered vertically
                 self.attack_range,  # Width = attack range
                 self.hitbox.height + self.attack_range  # Taller than player
             )
-        
-        if attack_rect:
-            for enemy in enemies:
-                if check_collision_recs(attack_rect, enemy.hitbox):
-                    enemy.health -= self.dmg
-                    if enemy.health <= 0:
-                        self.score += enemy.maxHealth
+
+        for enemy in enemies:
+            if check_collision_recs(attack_rect, enemy.hitbox):
+                play_sound(self.hit_sound)
+                enemy.health -= self.dmg
+                if enemy.health <= 0:
+                    self.score += enemy.maxHealth
 
     def increase_health(self, amount):
         self.health = min(self.max_health, self.health + amount)
@@ -294,6 +319,6 @@ class Player:
     def increase_attack(self, amount):
         self.dmg += amount
         print(f"Attack increased to {self.dmg}")
-    
+
     def get_score(self):
         return self.score

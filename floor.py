@@ -37,7 +37,7 @@ class Floor:
         if tile_char == "o":
           room_num = str(random.randint(1, self.NUM_ROOMS))
           door_string = self.get_door_string(y, x)
-          self.rooms[y][x] = Room(f"assets/rooms/{room_num}/obstacles.txt", f"assets/rooms/{room_num}/enemies.txt", door_string,)
+          self.rooms[y][x] = Room(f"assets/rooms/{3}/obstacles.txt", f"assets/rooms/{3}/enemies.txt", door_string,)
         elif tile_char == 's':
           door_string = self.get_door_string(y, x)
           self.rooms[y][x] = Room(f"assets/rooms/0/obstacles.txt", f"assets/rooms/0/enemies.txt", door_string,)
