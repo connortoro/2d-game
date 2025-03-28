@@ -69,12 +69,12 @@ class Floor:
           y, x = self.pos
           self.pos = (y-1, x)
           self.map[y-1][x] = 'o'
-          player.rect.y = SCALE
+          player.rect.y = SCALE*5.8
         elif player.rect.y > 500: # S
           y, x = self.pos
           self.pos = (y+1, x)
           self.map[y+1][x] = 'o'
-          player.rect.y = 66
+          player.rect.y = SCALE
         elif player.rect.x < 200:
           y, x = self.pos
           self.pos = (y, x-1)
