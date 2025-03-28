@@ -20,19 +20,10 @@ playerui = PlayerUI(player)
 floor = Floor()
 
 # Load background music
-music = load_music_stream("assets/audio/rpg-city-8381.mp3")
-play_music_stream(music)
-set_music_volume(music, 0.1)
+# music = load_music_stream("assets/audio/rpg-city-8381.mp3")
+# play_music_stream(music)
+# set_music_volume(music, 0.1)
 
-# Load background music
-music = load_music_stream("assets/audio/rpg-city-8381.mp3")
-play_music_stream(music)
-set_music_volume(music, 0.1)
-
-# Load background music
-music = load_music_stream("assets/audio/rpg-city-8381.mp3")
-play_music_stream(music)
-set_music_volume(music, 0.1)
 # Game state enum
 class GameState(Enum):
     PLAYING = 0
@@ -56,10 +47,6 @@ while not window_should_close():
     # Update music stream if music is loaded
     # if music:
     #     update_music_stream(music)
-
-    # Update music stream if music is loaded
-    if music:
-        update_music_stream(music)
 
     # Check for player death and update game state
     if game_state == GameState.PLAYING and player.health <= 0:
