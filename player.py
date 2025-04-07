@@ -5,6 +5,7 @@ from room import Room  # Import the Room class
 import time
 from collisions import *
 from config import *
+from utilities import *
 
 # Dimensions of space
 
@@ -98,7 +99,7 @@ class Player:
         self.dmg = 10
         self.attack_timer = 0
         self.attack_cooldown = 0.6
-        self.attack_range = 150  # Range of the attack
+        self.attack_range = 120  # Range of the attack
         self.attack_angle = 90  # Angle of the attack arc (in degrees)
 
         """===================================== SOUNDS ======================================"""
@@ -302,9 +303,8 @@ class Player:
         for enemy in enemies:
             if check_collision_recs(attack_rect, enemy.hitbox):
                 play_sound(self.hit_sound)
-                enemy.health -= self.dmg
-                if enemy.health <= 0:
-                    self.score += enemy.maxHealth
+                dir = direction_between_rects(self.hitbox, enemy.hitbox)
+                enemy.take_damage(self.dmg, dir)
 
     def increase_health(self, amount):
         self.health = min(self.max_health, self.health + amount)
