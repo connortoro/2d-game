@@ -46,33 +46,33 @@ class NPC:
         x += 20
         y += 20
         draw_text("Hello, hero! Choose an upgrade:", x, y, 18, WHITE)
-        draw_text("1: Increase Health (30 Score)", x, y+25, 18, WHITE)
-        draw_text("2: Increase Speed (20 Score)", x, y+50, 18, WHITE)
-        draw_text("3: Increase Attack (40 Score)", x, y+75, 18, WHITE)
+        draw_text("1: Increase Health (3 Gold)", x, y+25, 18, WHITE)
+        draw_text("2: Increase Speed (2 Gold)", x, y+50, 18, WHITE)
+        draw_text("3: Increase Attack (4 Gold)", x, y+75, 18, WHITE)
 
     def check_interaction(self, player):
         if is_key_pressed(KEY_ONE):
-            if player.score < 30:
+            if player.score < 3:
                 return
             else:
                 player.increase_health(10)
-                player.score -= 30
+                player.gold -= 3
                 self.interacted = True
                 self.current_animation.animation_update()
         elif is_key_pressed(KEY_TWO):
-            if player.score < 20:
+            if player.gold < 2:
                 return 
             else:
                 player.increase_speed(2)
-                player.score -= 20
+                player.gold -= 2
                 self.interacted = True
                 self.current_animation.animation_update()
         elif is_key_pressed(KEY_THREE):
-            if player.score < 40: 
+            if player.gold < 4: 
                 return
             else:
                 player.increase_attack(5)
-                player.score -= 40
+                player.gold -= 4
                 self.interacted = True
                 self.current_animation.animation_update()
         
