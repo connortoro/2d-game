@@ -14,6 +14,10 @@ RIGHT = 1
 UP = -2
 DOWN = 2
 
+class GameState(Enum):
+    RUNNING = "RUNNING"
+    PAUSED = "PAUSED"
+
 class playerState(Enum):
     """PLAYER STATES"""
     IDLE = "IDLE"
@@ -82,6 +86,7 @@ class Player:
         self.state = playerState.IDLE  # default state
         self.attack_state = playerState.ATTACK_RIGHT
         self.current_animation = self.animations[self.state]  # default animation
+        self.game_state = GameState.RUNNING
 
         """================================= PLAYER STATS ================================="""
         self.health = 150
