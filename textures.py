@@ -5,6 +5,8 @@ base = None
 old_base = None
 water = None
 
+gold = None
+
 src_map = None
 
 

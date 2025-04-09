@@ -1,7 +1,8 @@
 from raylibpy import *
-from player import Player, W, H
+from player import Player
 from animation import Animation, REPEATING
-import time
+from config import *
+import textures
 
 class PlayerUI:
     mm_offset = (50, 100)
@@ -15,13 +16,21 @@ class PlayerUI:
 
     def draw(self, floor):
         self.draw_health_bar()
-        #self.draw_inventory_bar()
         self.draw_minimap(floor)
         self.draw_score()
-        #self.draw_instructions()
 
     def draw_score(self):
-        draw_text(f"Score: {str(self.player.score)}", 1000, 830, 40, BLACK)
+        tint = Color(0, 0, 0, 140)
+        opac  = Color(255, 255, 255, 130)
+        width = 300
+        height = 150
+        x = W-(width+100)
+        y = H-(height+20)
+
+        rect = Rectangle(x, y, width, height)
+        draw_rectangle_rounded(rect, .2, 50, tint)
+        draw_texture_pro(textures.old_base, Rectangle(13*16, 0, 16, 16), Rectangle(x, y, 60, 60), Vector2(0, 0), 0, opac)
+        draw_text(f"{self.player.gold}", x+60, y+21, 25, opac)
 
     def draw_minimap(self, floor):
         map = floor.map
