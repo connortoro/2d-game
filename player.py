@@ -21,6 +21,7 @@ class GameState(Enum):
 class playerState(Enum):
     """PLAYER STATES"""
     IDLE = "IDLE"
+    HURT = "HURT"
     DEAD = "DEAD"
     MOVE = "MOVE"
     ATTACK = "ATTACK"
@@ -44,13 +45,13 @@ class playerState(Enum):
 class Player:
     def __init__(self, texture):
         """================================= BASICS ================================="""
-        sprite_width = 96.0 * 2.5
-        sprite_height = 96.0 * 2.5
+        sprite_width = 64.0 * 3
+        sprite_height = 64.0 * 3
         self.rect = Rectangle(W / 2.0 - sprite_width / 2.0 , H / 2.0 - sprite_height / 2.0, sprite_width, sprite_height)
         self.vel = Vector2(0.0, 0.0)
         self.sprite = texture
         self.dir = RIGHT  # right
-        self.death = load_texture("assets/player_sheet/dead.png")
+        self.death = load_texture("assets/player_sheet/player_spritesheet.png")
         feet_width = 10.0 * 4
 
         feet_width = 10.0 * 4
@@ -67,27 +68,29 @@ class Player:
         self.dialog_npc = None
         """================================= ANIMATIONS ================================="""
         self.animations = {
-            playerState.IDLE: Animation(1, 5, 1, 0, 96, 0.1, 0.1, REPEATING, 96, 96),
-            playerState.WALKING_UP: Animation(1, 5, 1, 1, 96, 0.1, 0.1, REPEATING, 96, 96),
-            playerState.WALKING_DOWN: Animation(1, 5, 1, 1, 96, 0.1, 0.1, REPEATING, 96, 96),
-            playerState.WALKING_RIGHT: Animation(1, 5, 1, 1, 96, 0.1, 0.1, REPEATING, 96, 96),
-            playerState.WALKING_LEFT: Animation(1, 5, 1, 1, 96, 0.1, 0.1, REPEATING, 96, 96),
-            playerState.WALKING_UP_LEFT: Animation(1, 5, 1, 1, 96, 0.1, 0.1, REPEATING, 96, 96),
-            playerState.WALKING_UP_RIGHT: Animation(1, 5, 1, 1, 96, 0.1, 0.1, REPEATING, 96, 96),
-            playerState.WALKING_DOWN_LEFT: Animation(1, 5, 1, 1, 96, 0.1, 0.1, REPEATING, 96, 96),
-            playerState.WALKING_DOWN_RIGHT: Animation(1, 5, 1, 1, 96, 0.1, 0.1, REPEATING, 96, 96),
-            playerState.DEAD: Animation(0, 6, 0, 0, 16, 0.1, 0.1, ONESHOT, 64, 64),
-            playerState.ATTACK_RIGHT: Animation(1, 5, 1, 2, 96, 0.075, 0.075, ONESHOT, 96, 96),
-            playerState.ATTACK_LEFT: Animation(1, 5, 1, 2, 96, 0.075, 0.075, ONESHOT, 96, 96, True),
-            playerState.ATTACK_UP: Animation(1, 5, 1, 6, 96, 0.075, 0.075, ONESHOT, 96, 96),
-            playerState.ATTACK_DOWN: Animation(1, 5, 1, 4, 96, 0.075, 0.075, ONESHOT, 96, 96),
+            playerState.IDLE: Animation(1, 11, 1, 0, 64, 0.1, 0.1, REPEATING, 64, 64),
+            playerState.HURT: Animation(1, 4, 1, 11, 64, 0.1, 0.1, REPEATING, 64, 64),
+            playerState.WALKING_UP: Animation(1, 5, 1, 8, 64, 0.1, 0.1, REPEATING, 64, 64),
+            playerState.WALKING_DOWN: Animation(1, 5, 1, 7, 64, 0.1, 0.1, REPEATING, 64, 64),
+            playerState.WALKING_RIGHT: Animation(1, 5, 1, 9, 64, 0.1, 0.1, REPEATING, 64, 64),
+            playerState.WALKING_LEFT: Animation(1, 5, 1, 10, 64, 0.1, 0.1, REPEATING, 64, 64),
+            playerState.WALKING_UP_LEFT: Animation(1, 5, 1, 8, 64, 0.1, 0.1, REPEATING, 64, 64),
+            playerState.WALKING_UP_RIGHT: Animation(1, 5, 1, 8, 64, 0.1, 0.1, REPEATING, 64, 64),
+            playerState.WALKING_DOWN_LEFT: Animation(1, 5, 1, 7, 64, 0.1, 0.1, REPEATING, 64, 64),
+            playerState.WALKING_DOWN_RIGHT: Animation(1, 5, 1, 7, 64, 0.1, 0.1, REPEATING, 64, 64),
+            playerState.DEAD: Animation(1, 5, 1, 12, 64, 0.1, 0.1, ONESHOT, 64, 64),
+            playerState.ATTACK_RIGHT: Animation(1, 7, 1, 5, 64, 0.075, 0.075, ONESHOT, 64, 64),
+            playerState.ATTACK_LEFT: Animation(1, 7, 1, 6, 64, 0.075, 0.075, ONESHOT, 64, 64),
+            playerState.ATTACK_UP: Animation(1, 7, 1, 3, 64, 0.075, 0.075, ONESHOT, 64, 64),
+            playerState.ATTACK_DOWN: Animation(1, 7, 1, 4, 64, 0.075, 0.075, ONESHOT, 64, 64),
         }
 
         self.state = playerState.IDLE  # default state
         self.attack_state = playerState.ATTACK_RIGHT
         self.current_animation = self.animations[self.state]  # default animation
         self.game_state = GameState.RUNNING
-
+        self.is_hurt = False
+        self.hurt_duration = 0.4
         """================================= PLAYER STATS ================================="""
         self.health = 150
         self.max_health = 150
@@ -125,6 +128,7 @@ class Player:
     def take_damage(self, damage_amount):
         self.health = max(0, self.health - damage_amount)  # take damage
         self.damage_timer = time.time()  # start timer
+        self.is_hurt = True #player was hurt, used for animation
         if self.health == 0:  # player died
             self.state = playerState.DEAD  # set player state to dead
 
@@ -135,6 +139,10 @@ class Player:
 
         if self.state == playerState.DEAD:
             self.handle_death()
+
+        if self.is_hurt:
+            if time.time() - self.damage_timer > self.hurt_duration:
+                self.is_hurt = False
 
         self.handle_attack(room.enemies)
         self.handle_movement()
@@ -148,24 +156,23 @@ class Player:
         origin = Vector2(0.0, 0.0)
 
         if self.state == playerState.DEAD:
-            death_rect = Rectangle(self.rect.x, self.rect.y, 64.0 * 2, 64.0 * 2)
-            draw_texture_pro(self.death, source, death_rect, origin, 0.0, WHITE)
+            draw_texture_pro(self.death, source, self.rect, origin, 0.0, WHITE)
             return #player dead, exit
         else:
             # draw hurt animation
             color = WHITE
             if time.time() - self.damage_timer < self.highlight_duration:
-                color = RED
+                color = WHITE
             if self.attack_timer > 0:
                 attack_source = self.animations[self.attack_state].animation_frame_horizontal()
-                draw_texture_pro(self.sprite, attack_source, self.rect, origin, 0.0, color)
+                draw_texture_pro(self.sprite, attack_source, self.rect, origin, 0.0, WHITE)
             else:
                 #draw animations if going left
-                if self.dir == LEFT:
-                    source.width = source.width * self.dir
-                    draw_texture_pro(self.sprite, source, self.rect, origin, 0.0, color)
-                else:
-                    draw_texture_pro(self.sprite, source, self.rect, origin, 0.0, color)
+                #if self.dir == LEFT:
+                #    source.width = source.width * self.dir
+                #    draw_texture_pro(self.sprite, source, self.rect, origin, 0.0, color)
+                #else:
+                draw_texture_pro(self.sprite, source, self.rect, origin, 0.0, color)
 
             # If attacking, draw the attack animation on top
             if hasattr(self, 'attacking') and self.attacking and self.attack_animation:
@@ -179,6 +186,8 @@ class Player:
 
     def handle_movement(self):
         if self.state == playerState.DEAD:
+            return
+        if self.state == playerState.HURT:
             return
         self.vel.x = 0.0
         self.vel.y = 0.0
@@ -213,7 +222,7 @@ class Player:
         self.rect.x += dx
         self.rect.y += dy
         self.hitbox.x = self.rect.x + (self.rect.width - self.hitbox.width) / 2
-        self.hitbox.y = self.rect.y + self.rect.height - self.hitbox.height - self.hitbox_offset - 30
+        self.hitbox.y = self.rect.y + self.rect.height - self.hitbox.height - self.hitbox_offset
 
         # foostep sound update
         self.distance_moved += vector2_length(Vector2(dx, dy))
@@ -222,7 +231,10 @@ class Player:
             play_sound(self.footstep_sound)
 
     def update_animation(self):
-        self.current_animation = self.animations[self.state]
+        if self.is_hurt: #only plays when player is hurt
+            self.current_animation = self.animations[playerState.HURT]
+        else:
+            self.current_animation = self.animations[self.state]
         self.current_animation.animation_update()
 
     def check_collisions(self, room: Room):
@@ -237,6 +249,7 @@ class Player:
         #change state to dead
         self.state = playerState.DEAD
         self.current_animation = self.animations[self.state]
+        self.update_animation()
 
     """================================= ATTACK MECHANIC ================================="""
 

@@ -16,7 +16,7 @@ init_audio_device()
 textures.load_textures()
 
 # init_audio_device()
-player_texture = load_texture("assets/player_sheet/player.png")
+player_texture = load_texture("assets/player_sheet/player_spritesheet.png")
 player = Player(player_texture)
 playerui = PlayerUI(player)
 floor = Floor()
