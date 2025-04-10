@@ -27,23 +27,13 @@ music = load_music_stream("assets/audio/rpg-city-8381.mp3")
 play_music_stream(music)
 set_music_volume(music, 0.1)
 
-# Load background music
-music = load_music_stream("assets/audio/rpg-city-8381.mp3")
-play_music_stream(music)
-set_music_volume(music, 0.1)
-
-# Load background music
-music = load_music_stream("assets/audio/rpg-city-8381.mp3")
-play_music_stream(music)
-set_music_volume(music, 0.1)
-
 # Game state enum
 class GameState(Enum):
     PLAYING = 0
     GAME_OVER = 1
     PAUSED = 2
 
-game_state = GameState.PLAYING
+game_state = GameState.PLAYING #base game_state
 
 def restart_game():
     global game_state, player, floor, playerui
@@ -77,36 +67,31 @@ def handle_pause():
 # Main game loop
 
 while not window_should_close():
-    handle_pause()
-    # Update music stream if music is loaded
-    # if music:
-    #     update_music_stream(music)
-
     # Update music stream if music is loaded
     if music:
         update_music_stream(music)
+
+    # Drawing
+    begin_drawing()
+    clear_background(SKYBLUE)
 
     # Check for player death and update game state
     if game_state == GameState.PLAYING and player.health <= 0:
         game_over_timer = time.time()
         game_state = GameState.GAME_OVER
 
-    # Always update everything, regardless of game state
-    if game_state == GameState.PLAYING:
+    #allows animations in every state but paused
+    if game_state != GameState.PAUSED:
         player.update(floor.get_current_room())
         floor.update(player)
         playerui.update()
 
-    # Drawing
-    begin_drawing()
-
-    # Always draw the game
-    clear_background(SKYBLUE)
     floor.draw()
     player.draw()
     playerui.draw(floor)
 
     if game_state == GameState.PAUSED:
+        handle_pause()
         menu.draw(W, H)
 
     # Draw game over overlay if in game over state

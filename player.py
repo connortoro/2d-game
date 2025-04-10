@@ -156,6 +156,7 @@ class Player:
         origin = Vector2(0.0, 0.0)
 
         if self.state == playerState.DEAD:
+            self.is_hurt = False #no longer "hurt"
             draw_texture_pro(self.death, source, self.rect, origin, 0.0, WHITE)
             return #player dead, exit
         else:
@@ -167,14 +168,10 @@ class Player:
                 attack_source = self.animations[self.attack_state].animation_frame_horizontal()
                 draw_texture_pro(self.sprite, attack_source, self.rect, origin, 0.0, WHITE)
             else:
-                #draw animations if going left
-                #if self.dir == LEFT:
-                #    source.width = source.width * self.dir
-                #    draw_texture_pro(self.sprite, source, self.rect, origin, 0.0, color)
-                #else:
+                #draw sprite
                 draw_texture_pro(self.sprite, source, self.rect, origin, 0.0, color)
 
-            # If attacking, draw the attack animation on top
+            # If attacking, draw the attack animation on top so player can move while attacking
             if hasattr(self, 'attacking') and self.attacking and self.attack_animation:
                 attack_source = self.attack_animation.animation_frame_horizontal()
 
@@ -249,7 +246,6 @@ class Player:
         #change state to dead
         self.state = playerState.DEAD
         self.current_animation = self.animations[self.state]
-        self.update_animation()
 
     """================================= ATTACK MECHANIC ================================="""
 
