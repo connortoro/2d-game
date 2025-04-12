@@ -48,8 +48,9 @@ def handle_pause():
     if game_state == GameState.PLAYING and is_key_pressed(KEY_ESCAPE):
         game_state = GameState.PAUSED  # Enter Pause Mode
     elif game_state == GameState.PAUSED:
-        if is_key_pressed(KEY_ESCAPE):  # Unpause when Escape is pressed again
-            game_state = GameState.PLAYING
+        if menu.state == "main":
+            if is_key_pressed(KEY_ESCAPE):
+                game_state = GameState.PLAYING
 
         if is_key_pressed(KEY_DOWN):
             menu.navigate(1)
@@ -59,8 +60,26 @@ def handle_pause():
             selection = menu.select()
             if selection == 0:  # Resume
                 game_state = GameState.PLAYING
-            elif selection == 1:  # Quit
+            elif selection == 1:
+                menu.state = "options"
+                menu.selected_index = 0
+            elif selection == 2:  # Quit
                 close_window()  # Close window only if Quit is selected from menu
+                exit()
+
+        elif menu.state == "options":
+            if is_key_pressed(KEY_RIGHT):
+                if menu.selected_index == 0:
+                    menu.adjust_volume(1, music)
+            elif is_key_pressed(KEY_LEFT):
+                if menu.selected_index == 0:
+                    menu.adjust_volume(-1, music)
+            elif is_key_pressed(KEY_DOWN):
+                menu.navigate(1)
+            elif is_key_pressed(KEY_UP):
+                menu.navigate(-1)
+            elif is_key_pressed(KEY_ENTER):
+                menu.select()
 
 
 
@@ -90,8 +109,9 @@ while not window_should_close():
     player.draw()
     playerui.draw(floor)
 
+    handle_pause()
+
     if game_state == GameState.PAUSED:
-        handle_pause()
         menu.draw(W, H)
 
     # Draw game over overlay if in game over state
