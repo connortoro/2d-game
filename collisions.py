@@ -7,7 +7,7 @@ def check_enemy_collisions(player, room):
             continue  # Skip dead enemies
 
         if check_collision_recs(player.hitbox, enemy.hitbox):
-            player.take_damage(enemy.dmg)  # Example: Player takes 10 damage
+            player.take_damage(enemy.dmg, enemy.hitbox)  # Example: Player takes 10 damage
     for spike in room.spikes:
         if check_collision_recs(spike, player.hitbox):
             player.take_damage(10)

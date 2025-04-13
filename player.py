@@ -101,7 +101,10 @@ class Player:
         """================================= DAMAGE EFFECTS ================================="""
         self.damage_timer = 0
         self.highlight_duration = 0.7  # duration of red highlight over player
-
+        self.knockback_speed = 1100
+        self.knockback_timer = 0
+        self.knockback_duration = 0.3
+        self.knockback_direction = None
         """================================= ATTACK MECHANIC ================================="""
         self.dmg = 10
         self.attack_timer = 0
@@ -124,10 +127,17 @@ class Player:
         set_sound_volume(self.hit_sound, .5)
 
 
-    def take_damage(self, damage_amount):
+    def take_damage(self, damage_amount, enemy_hitbox):
         self.health = max(0, self.health - damage_amount)  # take damage
-        self.damage_timer = time.time()  # start timer
-        self.is_hurt = True #player was hurt, used for animation
+        self.damage_timer = time.time()  # start damage timer timer
+        self.knockback_timer = self.knockback_duration
+        #knockback direction
+        if enemy_hitbox:
+            self.knockback_direction = direction_between_rects(enemy_hitbox, self.hitbox)
+        else:
+            self.knockback_direction = Vector2(0, 0) #fallback
+
+        self.is_hurt = True
         if self.health == 0:  # player died
             self.state = playerState.DEAD  # set player state to dead
 
@@ -185,6 +195,11 @@ class Player:
             return
         if self.state == playerState.HURT:
             return
+        if self.knockback_timer > 0: #knockback logic (same as Enemy class)
+            self.knockback_timer -= get_frame_time()
+            ratio = (self.knockback_timer/self.knockback_duration) ** 2
+            self.vel = vector2_scale(self.knockback_direction, ratio*self.knockback_speed)
+            return #prevent normal movement when being knocked back
         self.vel.x = 0.0
         self.vel.y = 0.0
         speed = 300.0 if is_key_down(KEY_LEFT_SHIFT) else 200.0  # defines speed, increases if shift is pressed
