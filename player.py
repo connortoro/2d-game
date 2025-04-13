@@ -6,7 +6,6 @@ import time
 from collisions import *
 from config import *
 from utilities import *
-
 # Dimensions of space
 
 LEFT = -1
