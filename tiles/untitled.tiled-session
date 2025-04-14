@@ -3,10 +3,11 @@
         "height": 4300,
         "width": 2
     },
-    "activeFile": "3.json",
+    "activeFile": "1.json",
     "expandedProjectPaths": [
         "."
     ],
+    "file.lastUsedOpenFilter": "All Files (*)",
     "fileStates": {
         "": {
             "scaleInDock": 1
@@ -15,8 +16,8 @@
             "scale": 8.221458333333333,
             "selectedLayer": 0,
             "viewCenter": {
-                "x": 152.04115247193573,
-                "y": 94.44796391556648
+                "x": 120.05169399184047,
+                "y": 71.94587334971999
             }
         },
         "0.tmj": {
@@ -39,8 +40,8 @@
             "scale": 5.51,
             "selectedLayer": 0,
             "viewCenter": {
-                "x": 167.8765880217786,
-                "y": 105.53539019963702
+                "x": 82.94010889292197,
+                "y": 71.9600725952813
             }
         },
         "1.tmx": {
@@ -55,11 +56,11 @@
             "expandedObjectLayers": [
                 3
             ],
-            "scale": 8.221458333333333,
+            "scale": 3.2725,
             "selectedLayer": 2,
             "viewCenter": {
-                "x": 122.78843473633532,
-                "y": 71.21607581785472
+                "x": 124.67532467532466,
+                "y": 93.96485867074102
             }
         },
         "2.tmx": {
@@ -74,11 +75,11 @@
             "expandedObjectLayers": [
                 3
             ],
-            "scale": 2.6101,
+            "scale": 2.61,
             "selectedLayer": 2,
             "viewCenter": {
-                "x": 143.6726562200682,
-                "y": 128.53913643155437
+                "x": 119.92337164750958,
+                "y": 71.83908045977012
             }
         },
         "3.tmx": {
@@ -96,11 +97,11 @@
             "expandedObjectLayers": [
                 3
             ],
-            "scale": 5.5,
+            "scale": 3.18,
             "selectedLayer": 2,
             "viewCenter": {
-                "x": 120.18181818181819,
-                "y": 71.9090909090909
+                "x": 119.81132075471697,
+                "y": 71.22641509433961
             }
         },
         "base.tsx": {
@@ -126,7 +127,6 @@
     "map.width": 15,
     "openFiles": [
         "2.json",
-        "4.json",
         "1.json",
         "0.json",
         "3.json",
@@ -134,11 +134,11 @@
     ],
     "project": "untitled.tiled-project",
     "recentFiles": [
-        "1.json",
-        "0.json",
-        "base.tsx",
         "2.json",
+        "base.tsx",
         "3.json",
+        "0.json",
+        "1.json",
         "4.json",
         "3.tmx",
         "1.tmx",
