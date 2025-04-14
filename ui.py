@@ -230,9 +230,11 @@ class PlayerUI:
         
         return None #no button clicked
 
-    def draw_settings_menu(self):
-        #transparent background
-        draw_rectangle(0, 0, W, H, Color(0, 0, 0, 200))
+    def draw_settings_menu(self, state):
+        if state == state.MAIN_MENU: #0 = main menu
+            draw_texture(self.background, 0, 0, WHITE) #background to match main menu
+
+        draw_rectangle(0, 0, W, H, Color(0, 0, 0, 200)) #transparent background
 
         center_x = get_screen_width() // 2
         center_y = get_screen_height() // 2
@@ -244,7 +246,7 @@ class PlayerUI:
 
         music_text = "Music Volume:"
         music_width = measure_text(music_text, 20)
-        draw_text(music_text, center_x - music_width // 2, center_y - 60, 20, DARKGRAY)
+        draw_text(music_text, center_x - music_width // 2, center_y - 60, 20, WHITE)
         
         #slider
         slider_width = 200

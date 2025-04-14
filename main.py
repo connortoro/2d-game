@@ -104,7 +104,7 @@ while not window_should_close():
             game_state = GameState.MAIN_MENU
 
     if game_state == GameState.SETTINGS:
-        action = playerui.draw_settings_menu()
+        action = playerui.draw_settings_menu(previous_state)
         if action == "back":
             game_state = previous_state
         end_drawing()
