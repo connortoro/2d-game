@@ -44,8 +44,8 @@ class playerState(Enum):
 class Player:
     def __init__(self, texture):
         """================================= BASICS ================================="""
-        sprite_width = 64.0 * 3
-        sprite_height = 64.0 * 3
+        sprite_width = 64.0 * 4
+        sprite_height = 64.0 * 4
         self.rect = Rectangle(W / 2.0 - sprite_width / 2.0 , H / 2.0 - sprite_height / 2.0, sprite_width, sprite_height)
         self.vel = Vector2(0.0, 0.0)
         self.sprite = texture
@@ -93,7 +93,6 @@ class Player:
         """================================= PLAYER STATS ================================="""
         self.health = 150
         self.max_health = 150
-        self.coins = 0
         self.inventory = []
         self.position = (0, 0)
         self.score = 0

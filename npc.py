@@ -7,11 +7,11 @@ H = 900
 
 class NPC:
     def __init__(self, texture, x, y):
-        sprite_width = 16 * 5
-        sprite_height = 24 * 5
+        sprite_width = 16 * 4
+        sprite_height = 16 * 4
         self.texture = texture
         self.rect = Rectangle(x, y, sprite_width, sprite_height)
-        self.current_animation = Animation(1, 3, 1, 8, 24, 0.1, 0.1, REPEATING, 16, 24)
+        self.current_animation = Animation(0, 4, 0, 0, 16, 0.2, 0.2, REPEATING, 16, 16)
         self.interacted = False
         self.in_range = False
         self.dialog_options = {
@@ -21,13 +21,14 @@ class NPC:
         }
 
     def update(self, player, room):
+        self.current_animation.animation_update()
         dist = vector2_distance(Vector2(player.hitbox.x, player.hitbox.y), Vector2(self.rect.x+50, self.rect.y+50))
         self.in_range = (dist < 150)
         if self.in_range:
             self.check_interaction(player)
 
     def draw(self):
-        source = self.current_animation.animation_frame_vertical()
+        source = self.current_animation.animation_frame_horizontal()
         origin = Vector2(0.0, 0.0)
         draw_texture_pro(self.texture, source, self.rect, origin, 0.0, WHITE)
 
@@ -52,7 +53,7 @@ class NPC:
 
     def check_interaction(self, player):
         if is_key_pressed(KEY_ONE):
-            if player.score < 3:
+            if player.gold < 3:
                 return
             else:
                 player.increase_health(10)

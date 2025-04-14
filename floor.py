@@ -6,7 +6,7 @@ from config import *
 
 class Floor:
   NUM_FLOORS = 1 #TODO CHANGE AS FLOORS & ROOMS ARE ADDED
-  NUM_ROOMS = 4
+  NUM_ROOMS = 5
 
   def __init__(self):
     self.rooms = []

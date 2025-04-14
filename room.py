@@ -143,7 +143,7 @@ class Room:
                 self.enemies.append(enemy)
 
             if entity['name'] == 'trader':
-                texture = load_texture("assets/player_sheet/8d-character.png")
+                texture = load_texture("assets/player_sheet/trader.png")
                 self.objects.append(NPC(texture, x, y))
 
     def get_tileset_name(self, gid):
