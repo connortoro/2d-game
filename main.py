@@ -6,7 +6,6 @@ from enum import Enum
 import time
 import textures
 from config import *
-from raylibpy import load_sound, play_sound, unload_sound
 
 #Init
 init_window(W, H, "My Game")
@@ -43,6 +42,12 @@ def restart_game():
     floor = Floor()
     playerui = PlayerUI(player, music, config)
 
+
+def quit():
+    unload_texture(player_texture)
+    unload_music_stream(music)  # Unload the music stream
+    close_window()
+
 # Main game loop
 
 while not window_should_close():
@@ -70,6 +75,7 @@ while not window_should_close():
             previous_state = game_state #stores current game state
             game_state = GameState.SETTINGS
         elif action == "quit":
+            quit()
             close_window()
 
         #prevents game from rendering in main menu (until player clicks play)
@@ -114,9 +120,8 @@ while not window_should_close():
     if game_state == GameState.GAME_OVER:
         playerui.draw_game_over(restart_game)
 
+
     end_drawing()
 
 # Unload resources
-unload_texture(player_texture)
-unload_music_stream(music)  # Unload the music stream
-close_window()
+quit()

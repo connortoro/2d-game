@@ -1,6 +1,4 @@
 from raylibpy import *
-from player import Player
-from animation import Animation, REPEATING
 from config import *
 import textures
 
