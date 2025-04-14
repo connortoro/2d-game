@@ -47,7 +47,6 @@ def restart_game():
 
 while not window_should_close():
 
-    print(f"game state: {game_state}")
     # Update music stream if music is loaded
     if music:
         update_music_stream(music)

@@ -99,6 +99,10 @@ class Enemy:
         self.animation = self.death_animation
 
     def drop_item(self, room):
+        x = self.rect.x + (self.rect.width / 2.0)
+        y = self.rect.y + (self.rect.height / 2.0)
+
+        room.objects.append(Heart(x, y))
         roll = random.randint(0, 8)
         if roll > 4:
             x = self.rect.x + (self.rect.width / 2.0)
