@@ -17,7 +17,7 @@ class PlayerUI:
         self.health_bar_texture = load_texture("assets/ui_textures/health_bar.png")
         self.inventory_bar_texture = load_texture("assets/ui_textures/inventory_bar.png")
         self.inv_selected_slot = None #currently selected slot
-
+        self.background = load_texture("assets/textures/background.png")
     def draw(self, floor):
         self.draw_health_bar()
         self.draw_minimap(floor)
@@ -116,7 +116,8 @@ class PlayerUI:
             draw_rectangle_lines(selected_slot_x, selected_slot_y, slot_size * scale, slot_size * scale, RED)
 
     def draw_main_menu(self):
-        clear_background(BLACK)
+
+        draw_texture(self.background, 0, 0, WHITE)
 
         #title of game
         title = "Dungeon Crawler"
