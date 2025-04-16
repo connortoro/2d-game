@@ -7,7 +7,14 @@ def check_enemy_collisions(player, room):
             continue  # Skip dead enemies
 
         if check_collision_recs(player.hitbox, enemy.hitbox):
-            player.take_damage(enemy.dmg, enemy.hitbox)  # Example: Player takes 10 damage
+            player.take_damage(enemy.dmg, enemy.hitbox)
+
+        if hasattr(enemy, "projectiles"):
+            for projectile in enemy.projectiles:
+                if check_collision_circle_rec(projectile.center, projectile.r, player.hitbox) and projectile.active:
+                    player.take_damage(projectile.dmg, Rectangle(projectile.center.x, projectile.center.y, 1, 1))
+                    projectile.active = False
+
     for spike in room.spikes:
         if check_collision_recs(spike, player.hitbox):
             player.take_damage(10)

@@ -1,15 +1,16 @@
 from raylibpy import *
 from animation import Animation, REPEATING
+import textures
 
 W = 1300
 H = 900
 
 
 class NPC:
-    def __init__(self, texture, x, y):
+    def __init__(self, x, y):
         sprite_width = 16 * 4
         sprite_height = 16 * 4
-        self.texture = texture
+        self.texture = textures.trader
         self.rect = Rectangle(x, y, sprite_width, sprite_height)
         self.current_animation = Animation(0, 4, 0, 0, 16, 0.2, 0.2, REPEATING, 16, 16)
         self.interacted = False
@@ -35,7 +36,7 @@ class NPC:
         if self.in_range and not self.interacted:
             self.draw_options()
 
-    def draw_options(self): 
+    def draw_options(self):
         x = self.rect.x - 110
         y = self.rect.y+120
 
@@ -62,18 +63,17 @@ class NPC:
                 self.current_animation.animation_update()
         elif is_key_pressed(KEY_TWO):
             if player.gold < 2:
-                return 
+                return
             else:
                 player.increase_speed(2)
                 player.gold -= 2
                 self.interacted = True
                 self.current_animation.animation_update()
         elif is_key_pressed(KEY_THREE):
-            if player.gold < 4: 
+            if player.gold < 4:
                 return
             else:
                 player.increase_attack(5)
                 player.gold -= 4
                 self.interacted = True
                 self.current_animation.animation_update()
-        
