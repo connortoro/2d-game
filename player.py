@@ -97,6 +97,7 @@ class Player:
         self.position = (0, 0)
         self.score = 0
         self.gold = 0
+        self.speed = 300
         """================================= DAMAGE EFFECTS ================================="""
         self.damage_timer = 0
         self.highlight_duration = 0.7  # duration of red highlight over player
@@ -201,18 +202,17 @@ class Player:
             return #prevent normal movement when being knocked back
         self.vel.x = 0.0
         self.vel.y = 0.0
-        speed = 300.0 if is_key_down(KEY_LEFT_SHIFT) else 200.0  # defines speed, increases if shift is pressed
-        diag_speed = speed * .707
+        diag_speed = self.speed * .707
 
         movement_keys = {  # dictionary of movements
             (KEY_A, KEY_W): (Vector2(-diag_speed, -diag_speed), playerState.WALKING_UP_LEFT, LEFT),  # top left
             (KEY_A, KEY_S): (Vector2(-diag_speed, diag_speed), playerState.WALKING_DOWN_LEFT, LEFT),  # bottom left
             (KEY_D, KEY_W): (Vector2(diag_speed, -diag_speed), playerState.WALKING_UP_RIGHT, RIGHT),  # top right
             (KEY_D, KEY_S): (Vector2(diag_speed, diag_speed), playerState.WALKING_DOWN_RIGHT, RIGHT),  # bottom right
-            (KEY_A,): (Vector2(-speed, 0), playerState.WALKING_LEFT, LEFT),  # left
-            (KEY_D,): (Vector2(speed, 0), playerState.WALKING_RIGHT, RIGHT),  # right
-            (KEY_W,): (Vector2(0, -speed), playerState.WALKING_UP, UP),  # up
-            (KEY_S,): (Vector2(0, speed), playerState.WALKING_DOWN, DOWN),  # down
+            (KEY_A,): (Vector2(-self.speed, 0), playerState.WALKING_LEFT, LEFT),  # left
+            (KEY_D,): (Vector2(self.speed, 0), playerState.WALKING_RIGHT, RIGHT),  # right
+            (KEY_W,): (Vector2(0, -self.speed), playerState.WALKING_UP, UP),  # up
+            (KEY_S,): (Vector2(0, self.speed), playerState.WALKING_DOWN, DOWN),  # down
         }
 
         for keys, (vel, state, direction) in movement_keys.items():  # for each key in movement keys
@@ -335,16 +335,13 @@ class Player:
 
     def increase_health(self, amount):
         self.health = min(self.max_health, self.health + amount)
-        print(f"Health increased to {self.health}")
 
     def increase_speed(self, amount):
         self.vel.x += amount
         self.vel.y += amount
-        print(f"Speed increased to {self.vel.x}, {self.vel.y}")
 
     def increase_attack(self, amount):
         self.dmg += amount
-        print(f"Attack increased to {self.dmg}")
 
     def get_score(self):
         return self.score

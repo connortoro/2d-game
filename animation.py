@@ -23,7 +23,7 @@ class Animation:
         y = (self.cur % (self.lst + 1)) * self.frame_height
         x = self.offset * self.offset_distance
         return Rectangle (float(x), float(y), float(self.frame_width), float(self.frame_height))
-    
+
     def animation_frame_horizontal(self): #for horizontal sprite sheets
         x = (self.cur % (self.lst + 1)) * self.frame_height
         y = self.offset * self.offset_distance
@@ -31,7 +31,7 @@ class Animation:
         if self.flipped:
             rect.width = rect.width * -1
         return rect
-    
+
     def animation_update(self):
         dt = get_frame_time()
         self.rem -= dt
@@ -48,7 +48,7 @@ class Animation:
         if self.animation_type == ONESHOT and self.cur >= self.lst:
             return True
         return False
-        
-    def reset(self):
-        self.cur = self.fst
+
+    def reset(self, frame=0):
+        self.cur = frame
         self.rem = self.spd
