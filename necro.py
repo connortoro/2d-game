@@ -3,7 +3,7 @@ from animation import Animation, REPEATING, ONESHOT
 from collisions import *
 from utilities import *
 from projectile import Projectile
-import time
+import random
 
 class Necro:
     W = 200
@@ -13,8 +13,8 @@ class Necro:
     def __init__(self, sheet, x, y):
         self.sheet = sheet
         self.vel = Vector2(0.0, 0.0)
-        self.dmg = 20
-        self.speed = 100
+        self.dmg = 40
+        self.speed = 150
         self.rect = Rectangle(x, y, self.W * self.SCALE, self.H * self.SCALE)
         self.idle_animation = Animation(0, 7, 0, 0, 128, 0.2, 0.2, REPEATING, 160, 160)
         self.death_animation = Animation(0, 7, 0, 6, 128, 0.15, 0.15, REPEATING, 160, 160)
@@ -24,7 +24,7 @@ class Necro:
         self.animation = self.idle_animation
 
         self.hitbox = Rectangle(self.rect.x + (self.rect.width - 90) / 2, self.rect.y + self.rect.height - 60, 90, 110)
-        self.health = 100
+        self.health = 300
         self.maxHealth = self.health
         self.is_alive = True
         self.is_dying = False
@@ -34,7 +34,7 @@ class Necro:
         ### ATTACK ###
         self.projectiles = []
         self.attack_timer = 2
-        self.attack_duration = 4.5
+        self.attack_duration = 4
 
         ### KNOCKBACK ###
         self.knockback_speed = 1100
@@ -75,8 +75,9 @@ class Necro:
             ratio = (self.knockback_timer/self.knockback_duration) ** 2
             self.vel = vector2_scale(self.knockback_direction, ratio*self.knockback_speed)
         else:
-            if self.attack_timer > 2.2:
-                dir = Vector2(0, 0)
+            if self.attack_timer > 3:
+                self.vel.x = 0
+                self.vel.y = 0
                 return
             dir = direction_between_rects(self.hitbox, player.hitbox)
             self.vel.x = dir.x * self.speed
@@ -91,7 +92,6 @@ class Necro:
     def draw(self):
         if not self.is_alive:
             return
-
         if not self.is_dying:
             self.draw_health_bar()
         source = self.animation.animation_frame_horizontal()
@@ -119,12 +119,32 @@ class Necro:
     def attack(self, player):
         if self.attack_timer > 0:
             self.attack_timer -= get_frame_time()
-            if self.attack_timer < 1:
-                self.animation = self.idle_animation
         else:
-          self.animation = self.attack_animation
-          v = center_of_rect(self.hitbox)
-          dir = direction_between_rects(self.hitbox, player.hitbox)
-          p = Projectile(v.x, v.y, 15, dir)
-          self.projectiles.append(p)
+          self.projectiles = []
           self.attack_timer = self.attack_duration
+          self.fire_projectiles(player)
+
+    def fire_projectiles(self, player):
+        c = center_of_rect(self.hitbox)
+
+        roll = random.randint(1, 4)
+        if roll == 1:
+            #cross
+            dirs = [Vector2(0, 1), Vector2(0, -1), Vector2(1, 0), Vector2(-1, 0)]
+            for dir in dirs:
+                self.projectiles.append(Projectile(c.x, c.y, 15, dir))
+        elif roll == 2:
+            #diag
+            dirs = [Vector2(0.707, 0.707), Vector2(-0.707, 0.707), Vector2(0.707, -0.707), Vector2(-0.707, -0.707)]
+            for dir in dirs:
+                self.projectiles.append(Projectile(c.x, c.y, 15, dir))
+        elif roll == 3:
+            dir = direction_between_rects(self.hitbox, player.hitbox)
+            dirs = [dir, vector2_rotate(dir, 0.3), vector2_rotate(dir, -0.3)]
+            for d in dirs:
+                self.projectiles.append(Projectile(c.x, c.y, 15, d))
+            return
+        elif roll == 4:
+            #direct
+            dir = direction_between_rects(self.hitbox, player.hitbox)
+            self.projectiles.append(Projectile(c.x, c.y, 15, dir))

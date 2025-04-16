@@ -16,11 +16,12 @@ mummy = None
 minion = None
 bat = None
 necro = None
+spark = None
 
 
 
 def load_textures():
-    global base, old_base, water, src_map, zombie, mummy, minion, bat, trader, necro
+    global base, old_base, water, src_map, zombie, mummy, minion, bat, trader, necro, spark
     base = rl.load_texture("assets/textures/Dungeon Gathering Free Version/Set 1.png")
     old_base = rl.load_texture("assets/textures/tileset_gray.png")
     water = rl.load_texture("assets/textures/Dungeon Gathering Free Version/Set 4.5.png")
@@ -45,3 +46,4 @@ def load_textures():
     mummy = rl.load_texture("assets/enemy_sheets/MINION_3.png")
     bat = rl.load_texture("assets/enemy_sheets/MINION_4.png")
     necro = rl.load_texture("assets/enemy_sheets/necromancer.png")
+    spark = rl.load_texture("assets/enemy_sheets/spark.png")
