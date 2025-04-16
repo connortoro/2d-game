@@ -36,12 +36,12 @@ class Floor:
     for y, row in enumerate(self.rooms):
       for x, tile_char in enumerate(row):
         if tile_char == "o":
-          room_num = str(random.randint(1, self.NUM_ROOMS))
+          room_num = 6#str(random.randint(1, self.NUM_ROOMS))
           door_string = self.get_door_string(y, x)
-          self.rooms[y][x] = Room(f"tiles/{room_num}.json", door_string,)
+          self.rooms[y][x] = Room(f"tiles/{room_num}.json", door_string)
         elif tile_char == 's':
           door_string = self.get_door_string(y, x)
-          self.rooms[y][x] = Room("tiles/0.json", door_string,)
+          self.rooms[y][x] = Room("tiles/0.json", door_string)
 
 
   def get_door_string(self, y, x):
@@ -64,7 +64,6 @@ class Floor:
 
     for door in room.doors:
       if check_collision_recs(player.hitbox, door):
-        print("door colliding")
         if player.rect.y < 100: # N
           y, x = self.pos
           self.pos = (y-1, x)

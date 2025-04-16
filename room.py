@@ -1,6 +1,7 @@
 from raylibpy import *
 from enemy import Enemy
 from animation import Animation, REPEATING, ONESHOT
+from necro import Necro
 from npc import NPC
 import textures
 import json
@@ -116,35 +117,35 @@ class Room:
             x = entity['x'] * (SCALE / TILE_SIZE)
             y = entity['y'] * (SCALE / TILE_SIZE)
 
-            print(x, y)
-
             if entity['name'] == 'zombie':
                 animation = Animation(0, 3, 1, 0, 16, 0.2, 0.2, REPEATING, 32, 32)
                 death_animation = Animation(0, 5, 1, 8, 16, .2, .2, ONESHOT, 32, 32)
-                enemy = Enemy("assets/enemy_sheets/LV1_BOSS.png", x , y , 70, 120, 30, animation, death_animation)
+                enemy = Enemy(textures.zombie, x , y , 70, 120, 30, animation, death_animation)
                 self.enemies.append(enemy)
 
-            if entity['name'] == 'minion':
+            elif entity['name'] == 'minion':
                 animation = Animation(0, 3, 1, 0, 16, 0.2, 0.2, REPEATING, 32, 32)
                 death_animation = Animation(0, 4, 1, 10, 16, .2, .2, ONESHOT, 32, 32)
-                enemy = Enemy("assets/enemy_sheets/MINION_1.png", x , y , 20, 200, 8, animation, death_animation)
+                enemy = Enemy(textures.minion, x , y , 20, 200, 8, animation, death_animation)
                 self.enemies.append(enemy)
 
-            if entity['name'] == 'mummy':
+            elif entity['name'] == 'mummy':
                 animation = Animation(0, 3, 1, 0, 16, 0.2, 0.2, REPEATING, 32, 32)
                 death_animation = Animation(0, 4, 1, 10, 16, .2, .2, ONESHOT, 32, 32)
-                enemy = Enemy("assets/enemy_sheets/MINION_3.png", x, y, 30, 135, 13, animation, death_animation)
+                enemy = Enemy(textures.mummy, x, y, 30, 135, 13, animation, death_animation)
                 self.enemies.append(enemy)
 
-            if entity['name'] == 'bat':
+            elif entity['name'] == 'bat':
                 animation = Animation(0, 3, 1, 0, 16, 0.2, 0.2, REPEATING, 32, 32)
                 death_animation = Animation(0, 4, 1, 10, 16, .2, .2, ONESHOT, 32, 32)
-                enemy = Enemy("assets/enemy_sheets/MINION_4.png", x , y , 40, 110, 20, animation, death_animation)
+                enemy = Enemy(textures.bat, x , y , 40, 110, 20, animation, death_animation)
                 self.enemies.append(enemy)
+            elif entity['name'] == 'necro':
+                enemy = Necro(textures.necro, x, y)
+                self.enemies.append(enemy)
+            elif entity['name'] == 'trader':
 
-            if entity['name'] == 'trader':
-                texture = load_texture("assets/player_sheet/trader.png")
-                self.objects.append(NPC(texture, x, y))
+                self.objects.append(NPC(x, y))
 
     def get_tileset_name(self, gid):
         for tileset in self.map['tilesets']:

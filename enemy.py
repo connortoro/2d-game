@@ -12,7 +12,7 @@ class Enemy:
     SCALE = 4
 
     def __init__(self, sheet, x, y, hp, speed, dmg, animation, death_animation):
-        self.sheet = load_texture(sheet)
+        self.sheet = sheet
         self.vel = Vector2(0.0, 0.0)
         self.dmg = dmg
         self.speed = speed

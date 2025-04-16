@@ -335,16 +335,13 @@ class Player:
 
     def increase_health(self, amount):
         self.health = min(self.max_health, self.health + amount)
-        print(f"Health increased to {self.health}")
 
     def increase_speed(self, amount):
         self.vel.x += amount
         self.vel.y += amount
-        print(f"Speed increased to {self.vel.x}, {self.vel.y}")
 
     def increase_attack(self, amount):
         self.dmg += amount
-        print(f"Attack increased to {self.dmg}")
 
     def get_score(self):
         return self.score
