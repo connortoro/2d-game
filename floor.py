@@ -36,12 +36,15 @@ class Floor:
     for y, row in enumerate(self.rooms):
       for x, tile_char in enumerate(row):
         if tile_char == "o":
-          room_num = 6#str(random.randint(1, self.NUM_ROOMS))
+          room_num = str(random.randint(1, self.NUM_ROOMS))
           door_string = self.get_door_string(y, x)
           self.rooms[y][x] = Room(f"tiles/{room_num}.json", door_string)
         elif tile_char == 's':
           door_string = self.get_door_string(y, x)
           self.rooms[y][x] = Room("tiles/0.json", door_string)
+        elif tile_char == 'b':
+          door_string = self.get_door_string(y, x)
+          self.rooms[y][x] = Room("tiles/b.json", door_string)
 
 
   def get_door_string(self, y, x):

@@ -35,6 +35,7 @@ class Room:
         self.spikes = []
         self.objects = []
         self.enemies = []
+        self.color = Color(255, 200, 200, 255)
 
         self.gen()
 
@@ -72,7 +73,7 @@ class Room:
                     src_y = (j // textures.src_map[tileset]['width']) * TILE_SIZE
                     src_rect = Rectangle(src_x, src_y, TILE_SIZE, TILE_SIZE)
 
-                    draw_texture_pro(textures.src_map[tileset]['texture'], src_rect, dest_rect, Vector2(0, 0), 0.0, WHITE)
+                    draw_texture_pro(textures.src_map[tileset]['texture'], src_rect, dest_rect, Vector2(0, 0), 0.0, self.color)
 
     def draw_objects(self):
         for object in self.objects:
@@ -91,7 +92,7 @@ class Room:
             else:
                 source_rect = Rectangle(208, 144, TILE_SIZE, TILE_SIZE)
             dest_rect = Rectangle(dest_x * SCALE, dest_y * SCALE,SCALE, SCALE)
-            draw_texture_pro(textures.base, source_rect, dest_rect, Vector2(0,0), 0, WHITE)
+            draw_texture_pro(textures.base, source_rect, dest_rect, Vector2(0,0), 0, self.color)
 
     def gen(self):
         self.gen_enemies(self.map['layers'][2])

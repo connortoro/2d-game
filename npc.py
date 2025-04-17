@@ -53,6 +53,8 @@ class NPC:
         draw_text("3: Increase Attack (4 Gold)", x, y+75, 18, WHITE)
 
     def check_interaction(self, player):
+        if self.interacted: 
+            return
         if is_key_pressed(KEY_ONE):
             if player.gold < 3:
                 return
@@ -65,7 +67,7 @@ class NPC:
             if player.gold < 2:
                 return
             else:
-                player.increase_speed(2)
+                player.speed += 40
                 player.gold -= 2
                 self.interacted = True
                 self.current_animation.animation_update()
