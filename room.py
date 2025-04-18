@@ -142,7 +142,7 @@ class Room:
                 enemy = Enemy(textures.bat, x , y , 40, 110, 20, animation, death_animation)
                 self.enemies.append(enemy)
             elif entity['name'] == 'necro':
-                enemy = Necro(textures.necro, x, y)
+                enemy = Necro(textures.necro, x, y, self)
                 self.enemies.append(enemy)
             elif entity['name'] == 'trader':
 

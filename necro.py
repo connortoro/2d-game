@@ -4,22 +4,34 @@ from collisions import *
 from utilities import *
 from projectile import Projectile
 import random
+from enemy import Enemy
+import textures
 
 class Necro:
     W = 200
     H = 200
     SCALE = 4
 
-    def __init__(self, sheet, x, y):
+    def __init__(self, sheet, x, y, room):
+        self.room = room
         self.sheet = sheet
         self.vel = Vector2(0.0, 0.0)
         self.dmg = 40
-        self.speed = 150
+        self.speed = 200
         self.rect = Rectangle(x, y, self.W * self.SCALE, self.H * self.SCALE)
+
         self.idle_animation = Animation(0, 7, 0, 0, 128, 0.2, 0.2, REPEATING, 160, 160)
-        self.death_animation = Animation(0, 7, 0, 6, 128, 0.15, 0.15, REPEATING, 160, 160)
-        self.hit_animation = Animation(0, 4, 1, 5, 128, 0.15, 0.15, REPEATING, 160, 160)
-        self.attack_animation = Animation(0, 7, 0, 2, 128, 0.2, 0.2, REPEATING, 160, 160)
+        self.death_animation = Animation(0, 10, 0, 6, 128, 0.15, 0.15, ONESHOT, 160, 160)
+        self.attack_animation = Animation(0, 12, 0, 2, 128, 0.075, 0.075, ONESHOT, 160, 160)
+
+        self.hit = Animation(0, 7, 1, 5, 128, 0.12, 0.12, ONESHOT, 160, 160)
+
+        self.state = 'idle'
+        self.anim_map = {
+            'idle': self.idle_animation,
+            'death': self.death_animation,
+            'attack': self.attack_animation
+        }
 
         self.animation = self.idle_animation
 
@@ -34,50 +46,43 @@ class Necro:
         ### ATTACK ###
         self.projectiles = []
         self.attack_timer = 2
-        self.attack_duration = 4
+        self.attack_duration = 4.8
+        self.attack_triggered = False
+        self.second_attack_triggered = False
+        self.cascade_timer = 0
+        self.cascade_num = 20
 
         ### KNOCKBACK ###
+        self.raging = False
         self.knockback_speed = 1100
         self.knockback_timer = 0
         self.knockback_duration = 0.3
         self.knockback_direction = None
 
     def update(self, player, rects, room):
-      if not self.is_alive:
-          return
+        if self.health <= 0:
+            self.knockback_timer = 0
+            self.state = 'death'
+            self.anim_map[self.state].animation_update()
+            return
 
-      if self.health <= 0 and not self.is_dying:
-          self.is_dying = True
-          self.start_death_animation()
-
-      if self.is_dying and self.death_timer > 0:
-          self.animation.animation_update()
-          self.death_timer -= get_frame_time()
-          if self.death_timer <= 0:
-              self.is_alive = False
-              self.hitbox = Rectangle(0, 0, 0, 0)
-      else:
-          self.attack(player)
-          for projectile in self.projectiles:
-              projectile.update()
-          self.animation.animation_update()
-          if not self.is_dying:
-              check_obstacle_collisions(self, rects)
-          self.move(player)
-          self.update_position()
+        self.update_attack(player)
+        for projectile in self.projectiles:
+            projectile.update()
+        self.anim_map[self.state].animation_update()
+        if not self.is_dying:
+            check_obstacle_collisions(self, rects)
+        self.move(player)
+        self.update_position()
 
     def move(self, player):
         if self.knockback_timer > 0:
             self.knockback_timer -= get_frame_time()
-            if self.knockback_timer < .1:
-                self.animation = self.idle_animation
-                self.hit_animation.reset(1)
             ratio = (self.knockback_timer/self.knockback_duration) ** 2
             self.vel = vector2_scale(self.knockback_direction, ratio*self.knockback_speed)
         else:
-            if self.attack_timer > 3:
-                self.vel.x = 0
-                self.vel.y = 0
+            if self.attack_timer > 3.2:
+                self.vel = Vector2(0, 0)
                 return
             dir = direction_between_rects(self.hitbox, player.hitbox)
             self.vel.x = dir.x * self.speed
@@ -90,15 +95,15 @@ class Necro:
       self.hitbox.y = 80+self.rect.y + (self.rect.height - self.hitbox.height) / 2
 
     def draw(self):
-        if not self.is_alive:
-            return
-        if not self.is_dying:
+        if self.state != 'death':
             self.draw_health_bar()
-        source = self.animation.animation_frame_horizontal()
-        origin = Vector2(0.0, 0.0)
-        # draw_rectangle_lines_ex(self.hitbox, 2.0, RED)
-        # draw_rectangle_lines_ex(self.rect, 2.0, RED)
-        draw_texture_pro(self.sheet, source, self.rect, origin, 0.0, WHITE)
+        source = self.anim_map[self.state].animation_frame_horizontal()
+        if self.knockback_timer > .1:
+            source = self.hit.animation_frame_horizontal()
+
+        color = RED if self.health < 150 else WHITE
+        draw_texture_pro(self.sheet, source, self.rect, Vector2(0.0, 0.0), 0.0, color)
+
         for projectile in self.projectiles:
             projectile.draw()
 
@@ -111,44 +116,84 @@ class Necro:
         self.health -= damage
         self.knockback_timer = self.knockback_duration
         self.knockback_direction = dir
-        self.animation = self.hit_animation
 
-    def start_death_animation(self):
-        self.animation = self.death_animation
+        if self.health < 150 and not self.raging:
+            self.raging = True
+            self.attack_duration *= 0.75
+            self.speed *= 1.2
 
-    def attack(self, player):
-        if self.attack_timer > 0:
-            self.attack_timer -= get_frame_time()
-        else:
-          self.projectiles = []
-          self.attack_timer = self.attack_duration * random.uniform(0.65, 1.35)
-          self.fire_projectiles(player)
+        if self.health <= 0:
+            self.hitbox = Rectangle(0, 0, 0, 0)
+            self.projectiles = []
+
+    def update_attack(self, player):
+        self.attack_timer -= get_frame_time()
+        self.cascade()
+        if self.attack_timer <= 0:
+            self.attack_animation.reset()
+            self.state = 'attack'
+            self.attack_triggered = self.second_attack_triggered = False
+            self.attack_timer = self.attack_duration
+
+        elif self.attack_animation.cur == 8 and not self.attack_triggered:
+            self.fire_projectiles(player)
+            self.attack_triggered = True
+
+        elif self.attack_animation.cur == 11 and self.health < 150 and not self.second_attack_triggered:
+            self.fire_projectiles(player)
+            self.second_attack_triggered = True
+
+        elif self.attack_animation.cur == 12 and self.cascade_num >= 9:
+            self.state = 'idle'
 
     def fire_projectiles(self, player):
         c = center_of_rect(self.hitbox)
+        c.x += 90
+        c.y -= 270
 
         roll = random.randint(1, 5)
         if roll == 1:
-            #cross
-            dirs = [Vector2(0, 1), Vector2(0, -1), Vector2(1, 0), Vector2(-1, 0)]
-            for dir in dirs:
-                self.projectiles.append(Projectile(c.x, c.y, 15, dir))
+            reroll = random.randint(1, 2)
+            if reroll == 1:
+                #cross
+                dirs = [Vector2(0, 1), Vector2(0, -1), Vector2(1, 0), Vector2(-1, 0)]
+                for dir in dirs:
+                    self.projectiles.append(Projectile(c.x, c.y, 15, dir))
+            else:
+                #diag
+                dirs = [Vector2(0.707, 0.707), Vector2(-0.707, 0.707), Vector2(0.707, -0.707), Vector2(-0.707, -0.707)]
+                for dir in dirs:
+                    self.projectiles.append(Projectile(c.x, c.y, 15, dir))
         elif roll == 2:
-            #diag
-            dirs = [Vector2(0.707, 0.707), Vector2(-0.707, 0.707), Vector2(0.707, -0.707), Vector2(-0.707, -0.707)]
-            for dir in dirs:
-                self.projectiles.append(Projectile(c.x, c.y, 15, dir))
+            #necromance
+            self.room.enemies.append(Enemy(textures.minion, 100, 100, 30, 140, 10, Animation(0, 3, 1, 0, 16, 0.2, 0.2, REPEATING, 32, 32), Animation(0, 4, 1, 10, 16, .2, .2, ONESHOT, 32, 32)))
+            self.room.enemies.append(Enemy(textures.minion, 1200, 650, 30, 140, 10, Animation(0, 3, 1, 0, 16, 0.2, 0.2, REPEATING, 32, 32), Animation(0, 4, 1, 10, 16, .2, .2, ONESHOT, 32, 32)))
         elif roll == 3:
-            dir = direction_between_rects(self.hitbox, player.hitbox)
+            #shotgun
+            dir = direction_between_rects(Rectangle(c.x, c.y, 1, 1), player.hitbox)
             dirs = [dir, vector2_rotate(dir, 0.3), vector2_rotate(dir, -0.3)]
             for d in dirs:
                 self.projectiles.append(Projectile(c.x, c.y, 15, d))
             return
         elif roll == 4:
+            #multi
             dirs = [Vector2(0, 1), Vector2(0, -1), Vector2(1, 0), Vector2(-1, 0), Vector2(0.707, 0.707), Vector2(-0.707, 0.707), Vector2(0.707, -0.707), Vector2(-0.707, -0.707)]
             for dir in dirs:
                 self.projectiles.append(Projectile(c.x, c.y, 15, dir))
         elif roll == 5:
-            self.knockback_direction = direction_between_rects(self.hitbox, player.hitbox)
-            self.knockback_timer = self.knockback_duration*1.5
+            #spin
+            self.cascade_timer = 0
+            self.cascade_num = 0
+
+    def cascade(self):
+        c = center_of_rect(self.hitbox)
+        c.x += 90
+        c.y -= 270
+        if self.cascade_num >= 18: return
+        self.cascade_timer -= get_frame_time()
+        if self.cascade_timer < 0:
+            self.cascade_timer = .04
+            dir = vector2_rotate(Vector2(1, 0), 6*(self.cascade_num/10))
+            self.projectiles.append(Projectile(c.x, c.y, 15, dir))
+            self.cascade_num += 1
 

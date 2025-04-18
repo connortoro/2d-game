@@ -46,4 +46,4 @@ def load_textures():
     mummy = rl.load_texture("assets/enemy_sheets/MINION_3.png")
     bat = rl.load_texture("assets/enemy_sheets/MINION_4.png")
     necro = rl.load_texture("assets/enemy_sheets/necromancer.png")
-    spark = rl.load_texture("assets/enemy_sheets/spark.png")
+    spark = rl.load_texture("assets/enemy_sheets/spark.png")\

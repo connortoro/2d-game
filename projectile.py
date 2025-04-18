@@ -7,13 +7,13 @@ class Projectile:
     self.center = Vector2(x, y)
     self.r = r
     self.dir = dir
-    self.spd = 600
-    self.dmg = 40
+    self.spd = 800
+    self.dmg = 50
     self.active = True
 
 
     self.size = r*5
-    self.animation = Animation(0, 6, 0, 0, 0, .15, .15, REPEATING, 32, 32)
+    self.animation = Animation(1, 5, 0, 0, 0, .1, .1, REPEATING, 32, 32)
 
   def update(self):
     if not self.active: return
