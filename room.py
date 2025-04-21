@@ -95,58 +95,74 @@ class Room:
             draw_texture_pro(textures.base, source_rect, dest_rect, Vector2(0,0), 0, self.color)
 
     def gen(self):
-        self.gen_enemies(self.map['layers'][2])
-        self.gen_rectangles(self.map['layers'][1])
+        self.gen_enemies(self.map['layers'])
+        self.gen_rectangles(self.map['layers'])
+        self.gen_spikes(self.map['layers'])
         self.gen_doors()
+        
 
-    def gen_rectangles(self, layer):
-        for i, gid in enumerate(layer['data']):
-            if gid == 0:
-                continue
-            else:
-                x = (i % COLS) * SCALE
-                y = (i // COLS) * SCALE
-                self.rectangles.append(Rectangle(x, y, SCALE, SCALE))
+    def gen_spikes(self, layers):
+        for layer in layers:
+            if layer['name'] == 'spikes':
+                for i, gid in enumerate(layer['data']):
+                    if gid == 0:
+                        continue
+                    else:
+                        x = (i % COLS) * SCALE
+                        y = (i // COLS) * SCALE
+                        self.spikes.append(Rectangle(x, y, SCALE, SCALE))
+
+    def gen_rectangles(self, layers):
+        for layer in layers:
+            if layer['name'] == 'obstacles':
+                for i, gid in enumerate(layer['data']):
+                    if gid == 0:
+                        continue
+                    else:
+                        x = (i % COLS) * SCALE
+                        y = (i // COLS) * SCALE
+                        self.rectangles.append(Rectangle(x, y, SCALE, SCALE))
 
     def gen_doors(self):
         for dir in self.door_string:
             x, y = self.door_dest[dir]
             self.doors.append(Rectangle((x*SCALE)-4 , (y*SCALE)-4 , SCALE+8, SCALE+8))
 
-    def gen_enemies(self, layer):
-        for entity in layer['objects']:
-            x = entity['x'] * (SCALE / TILE_SIZE)
-            y = entity['y'] * (SCALE / TILE_SIZE)
+    def gen_enemies(self, layers):
+        for layer in layers:
+            if layer['name'] == 'enemies':
+                for entity in layer['objects']:
+                    x = entity['x'] * (SCALE / TILE_SIZE)
+                    y = entity['y'] * (SCALE / TILE_SIZE)
 
-            if entity['name'] == 'zombie':
-                animation = Animation(0, 3, 1, 0, 16, 0.2, 0.2, REPEATING, 32, 32)
-                death_animation = Animation(0, 5, 1, 8, 16, .2, .2, ONESHOT, 32, 32)
-                enemy = Enemy(textures.zombie, x , y , 70, 120, 30, animation, death_animation)
-                self.enemies.append(enemy)
+                    if entity['name'] == 'zombie':
+                        animation = Animation(0, 3, 1, 0, 16, 0.2, 0.2, REPEATING, 32, 32)
+                        death_animation = Animation(0, 5, 1, 8, 16, .2, .2, ONESHOT, 32, 32)
+                        enemy = Enemy(textures.zombie, x , y , 70, 120, 30, animation, death_animation)
+                        self.enemies.append(enemy)
 
-            elif entity['name'] == 'minion':
-                animation = Animation(0, 3, 1, 0, 16, 0.2, 0.2, REPEATING, 32, 32)
-                death_animation = Animation(0, 4, 1, 10, 16, .2, .2, ONESHOT, 32, 32)
-                enemy = Enemy(textures.minion, x , y , 20, 200, 8, animation, death_animation)
-                self.enemies.append(enemy)
+                    elif entity['name'] == 'minion':
+                        animation = Animation(0, 3, 1, 0, 16, 0.2, 0.2, REPEATING, 32, 32)
+                        death_animation = Animation(0, 4, 1, 10, 16, .2, .2, ONESHOT, 32, 32)
+                        enemy = Enemy(textures.minion, x , y , 20, 200, 8, animation, death_animation)
+                        self.enemies.append(enemy)
 
-            elif entity['name'] == 'mummy':
-                animation = Animation(0, 3, 1, 0, 16, 0.2, 0.2, REPEATING, 32, 32)
-                death_animation = Animation(0, 4, 1, 10, 16, .2, .2, ONESHOT, 32, 32)
-                enemy = Enemy(textures.mummy, x, y, 30, 135, 13, animation, death_animation)
-                self.enemies.append(enemy)
+                    elif entity['name'] == 'mummy':
+                        animation = Animation(0, 3, 1, 0, 16, 0.2, 0.2, REPEATING, 32, 32)
+                        death_animation = Animation(0, 4, 1, 10, 16, .2, .2, ONESHOT, 32, 32)
+                        enemy = Enemy(textures.mummy, x, y, 30, 135, 13, animation, death_animation)
+                        self.enemies.append(enemy)
 
-            elif entity['name'] == 'bat':
-                animation = Animation(0, 3, 1, 0, 16, 0.2, 0.2, REPEATING, 32, 32)
-                death_animation = Animation(0, 4, 1, 10, 16, .2, .2, ONESHOT, 32, 32)
-                enemy = Enemy(textures.bat, x , y , 40, 110, 20, animation, death_animation)
-                self.enemies.append(enemy)
-            elif entity['name'] == 'necro':
-                enemy = Necro(textures.necro, x, y, self)
-                self.enemies.append(enemy)
-            elif entity['name'] == 'trader':
-
-                self.objects.append(NPC(x, y))
+                    elif entity['name'] == 'bat':
+                        animation = Animation(0, 3, 1, 0, 16, 0.2, 0.2, REPEATING, 32, 32)
+                        death_animation = Animation(0, 4, 1, 10, 16, .2, .2, ONESHOT, 32, 32)
+                        enemy = Enemy(textures.bat, x , y , 40, 110, 20, animation, death_animation)
+                        self.enemies.append(enemy)
+                    elif entity['name'] == 'necro':
+                        enemy = Necro(textures.necro, x, y, self)
+                        self.enemies.append(enemy)
+                    elif entity['name'] == 'trader':
+                        self.objects.append(NPC(x, y))
 
     def get_tileset_name(self, gid):
         for tileset in self.map['tilesets']:

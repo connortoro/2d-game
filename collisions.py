@@ -17,10 +17,9 @@ def check_enemy_collisions(player, room):
 
     for spike in room.spikes:
         if check_collision_recs(spike, player.hitbox):
-            player.take_damage(10)
+            player.take_damage(10, spike)
 
 def check_obstacle_collisions(self, obstacles):
-
     if self.hitbox.x < SCALE:
         self.rect.x = SCALE - (self.hitbox.x-self.rect.x)
     elif self.hitbox.x + self.hitbox.width > SCALE*(COLS-1):
