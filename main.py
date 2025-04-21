@@ -9,6 +9,7 @@ from config import *
 
 #Init
 init_window(W, H, "My Game")
+set_target_fps(60)
 set_exit_key(0)
 init_audio_device()
 textures.load_textures()
@@ -52,10 +53,8 @@ def quit():
 
 while not window_should_close():
 
-    # Update music stream if music is loaded
     if music:
         update_music_stream(music)
-    #pause/unpause button
     if is_key_pressed(KEY_ESCAPE):
         if game_state == GameState.PLAYING:
             game_state = GameState.PAUSED
@@ -63,7 +62,6 @@ while not window_should_close():
             game_state = GameState.PLAYING
         elif game_state == GameState.SETTINGS:
             game_state = GameState.PAUSED
-    # Drawing
     begin_drawing()
     clear_background(SKYBLUE)
 
@@ -72,13 +70,11 @@ while not window_should_close():
         if action == "start":
             game_state = GameState.PLAYING
         elif action == "settings":
-            previous_state = game_state #stores current game state
+            previous_state = game_state 
             game_state = GameState.SETTINGS
         elif action == "quit":
             quit()
             close_window()
-
-        #prevents game from rendering in main menu (until player clicks play)
         end_drawing()
         continue
 
