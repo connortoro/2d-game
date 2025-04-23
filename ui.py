@@ -35,6 +35,9 @@ class PlayerUI:
         draw_texture_pro(textures.old_base, Rectangle(13*16, 0, 16, 16), Rectangle(x, y, 60, 60), Vector2(0, 0), 0, opac)
         draw_text(f"{self.player.gold}", x+60, y+21, 25, opac)
 
+        draw_texture_pro(textures.old_base, Rectangle(13*16, 4*16, 16, 16), Rectangle(x+6, y+60, 47, 47), Vector2(0, 0), 0.0, opac)
+        draw_text(f"{self.player.dmg}", x+60, y+71, 25, opac)
+
     def draw_minimap(self, floor):
         map = floor.map
         blk = Color(100, 100, 100, 160)
