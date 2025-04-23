@@ -1,6 +1,8 @@
 from raylibpy import *
 from animation import Animation, REPEATING, ONESHOT
 from enum import Enum
+from config import *
+from sounds import SoundManager
 
 class coinState(Enum):
     IDLE = "IDLE"
@@ -8,10 +10,10 @@ class coinState(Enum):
 
 class Gold:
     def __init__(self, x, y):
+        self.config = load_config()
+        self.sound_manager = SoundManager(self.config)
         self.rect = Rectangle(x-25, y-25, 50, 50)
-        self.pickup_sound = load_sound("assets/audio/retro-coin-1-236677.mp3")
-        set_sound_pitch(self.pickup_sound, .8)
-        set_sound_volume(self.pickup_sound, .7)
+        self.pickup_sound = self.sound_manager.sounds["coin"]
         self.coin = load_texture("assets/textures/Dungeon Gathering Free Version/Coin Sheet.png")
         self.animations = {
             coinState.IDLE: Animation(0, 7, 0, 0, 16, 0.1, 0.1, REPEATING, 16, 16),
@@ -26,7 +28,7 @@ class Gold:
             self.state = coinState.PICKUP
             self.current_animation = self.animations[self.state]
             if not self.pickup_played: #if player has picked up coin, play sound and increase gold
-                play_sound(self.pickup_sound)
+                self.sound_manager.play_sound("coin")
                 player.gold = player.gold + 1
                 self.pickup_played = True
         if self.state == coinState.PICKUP and self.current_animation.is_complete(): #makes sure pickup animation plays before removing coin

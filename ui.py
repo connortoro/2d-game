@@ -10,6 +10,7 @@ class PlayerUI:
         self.player = player #player reference
         self.music = music #game music
         self.config = config
+        self.game_volume = self.config["game_volume"]
         self.music_volume = self.config["music_volume"]
         set_music_volume(self.music, self.music_volume)
         self.health_bar_texture = load_texture("assets/ui_textures/health_bar.png")
@@ -246,14 +247,14 @@ class PlayerUI:
         music_width = measure_text(music_text, 20)
         draw_text(music_text, center_x - music_width // 2, center_y - 60, 20, WHITE)
         
-        #slider
+        #volume slider
         slider_width = 200
         slider_height = 10
         slider_x = center_x - slider_width // 2
-        slider_y = center_y - 30
+        slider_y = center_y - 80
         draw_rectangle(slider_x, slider_y, slider_width, slider_height, GRAY)
 
-        #slider handle
+        #music volume slider handle
         handle_width = 10
         handle_x = slider_x + int(self.music_volume * slider_width) - handle_width // 2
         draw_rectangle(handle_x, slider_y - 5, handle_width, slider_height + 10, DARKGRAY)
@@ -265,16 +266,34 @@ class PlayerUI:
                 self.music_volume = clamp(new_volume, 0.0, 1.0)
                 self.config["music_volume"] = self.music_volume
                 save_config(self.config)
-                set_music_volume(self.music, self.music_volume)
+                self.player.sound_manager.update_music_volume(self.music_volume)
 
-        
+        game_text = "Game Volume:"
+        game_width = measure_text(game_text, 20)
+        draw_text(game_text, center_x - game_width // 2, center_y + 20, 20, WHITE)
+
+        slider_y_game = slider_y + 80 
+        draw_rectangle(slider_x, slider_y_game, slider_width, slider_height, GRAY)
+
+        handle_x_game = slider_x + int(self.game_volume * slider_width) - handle_width // 2
+        draw_rectangle(handle_x_game, slider_y_game - 5, handle_width, slider_height + 10, DARKGRAY)
+
+        if is_mouse_button_down(MOUSE_LEFT_BUTTON):
+            mouse_x, mouse_y = get_mouse_position()
+            if (slider_x <= mouse_x <= slider_x + slider_width) and (slider_y_game - 5 <= mouse_y <= slider_y_game + slider_height + 5):
+                new_game_volume = (mouse_x - slider_x) / slider_width
+                self.game_volume = clamp(new_game_volume, 0.0, 1.0)
+                self.config["game_volume"] = self.game_volume
+                save_config(self.config)
+                self.player.sound_manager.update_game_volume(self.game_volume)
+
         mouse_pos = get_mouse_position()
 
         #back button
         button_width = 200
         button_height = 50
         button_x = center_x - button_width // 2
-        button_y = slider_y + 60 #below slider
+        button_y = slider_y_game + 60 #below all sliders
 
         back_button_rect = Rectangle(button_x, button_y, button_width, button_height)
         back_hovered = check_collision_point_rec(mouse_pos, back_button_rect)

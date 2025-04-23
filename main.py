@@ -6,6 +6,7 @@ from enum import Enum
 import time
 import textures
 from config import *
+from sounds import SoundManager
 
 #Init
 init_window(W, H, "My Game")
@@ -14,15 +15,13 @@ set_exit_key(0)
 init_audio_device()
 textures.load_textures()
 config = load_config()
-
-# Load background music
-music = load_music_stream("assets/audio/rpg-city-8381.mp3")
-play_music_stream(music)
+sound_manager = SoundManager(config)
+last_music_state = None
 
 #player stuff
 player_texture = load_texture("assets/player_sheet/player_spritesheet.png")
 player = Player(player_texture)
-playerui = PlayerUI(player, music, config)
+playerui = PlayerUI(player, sound_manager.music_tracks["level_1_music"], config)
 floor = Floor()
 
 # Game state enum
@@ -41,20 +40,29 @@ def restart_game():
     game_state = GameState.PLAYING
     player = Player(player_texture)
     floor = Floor()
-    playerui = PlayerUI(player, music, config)
+    playerui = PlayerUI(player, sound_manager.music_tracks["level_1_music"], config)
 
 
 def quit():
     unload_texture(player_texture)
-    unload_music_stream(music)  # Unload the music stream
+    unload_music_stream(sound_manager.current_music)  # Unload the music stream
     close_window()
 
 # Main game loop
 
 while not window_should_close():
+    ### Music Managing ###
+    if sound_manager.current_music:
+        update_music_stream(sound_manager.current_music)
+    
+    if game_state == GameState.MAIN_MENU and last_music_state != GameState.MAIN_MENU:
+        sound_manager.play_music("main_menu_music")
+        last_music_state = GameState.MAIN_MENU
 
-    if music:
-        update_music_stream(music)
+    elif game_state == GameState.PLAYING and last_music_state != GameState.PLAYING:
+        sound_manager.play_music("level_1_music")
+        last_music_state = GameState.PLAYING
+
     if is_key_pressed(KEY_ESCAPE):
         if game_state == GameState.PLAYING:
             game_state = GameState.PAUSED
@@ -65,7 +73,7 @@ while not window_should_close():
     begin_drawing()
     clear_background(SKYBLUE)
 
-    if game_state == GameState.MAIN_MENU:
+    if game_state == GameState.MAIN_MENU :
         action = playerui.draw_main_menu()
         if action == "start":
             game_state = GameState.PLAYING
