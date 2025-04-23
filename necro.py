@@ -19,6 +19,7 @@ class Necro:
         self.dmg = 40
         self.speed = 200
         self.rect = Rectangle(x, y, self.W * self.SCALE, self.H * self.SCALE)
+        self.door = None
 
         self.idle_animation = Animation(0, 7, 0, 0, 128, 0.2, 0.2, REPEATING, 160, 160)
         self.death_animation = Animation(0, 10, 0, 6, 128, 0.15, 0.15, ONESHOT, 160, 160)
@@ -36,7 +37,7 @@ class Necro:
         self.animation = self.idle_animation
 
         self.hitbox = Rectangle(self.rect.x + (self.rect.width - 90) / 2, self.rect.y + self.rect.height - 60, 90, 110)
-        self.health = 300
+        self.health = 30
         self.maxHealth = self.health
         self.is_alive = True
         self.is_dying = False
@@ -60,6 +61,9 @@ class Necro:
         self.knockback_direction = None
 
     def update(self, player, rects, room):
+        if self.door:
+            if check_collision_recs(self.door, player.hitbox):
+                self.room.floor.next_floor()
         if self.health <= 0:
             self.knockback_timer = 0
             self.state = 'death'
@@ -95,6 +99,8 @@ class Necro:
       self.hitbox.y = 80+self.rect.y + (self.rect.height - self.hitbox.height) / 2
 
     def draw(self):
+        if self.door:
+            draw_texture_pro(textures.old_base, Rectangle(3*16, 2*16, 16, 16), self.door, Vector2(0, 0), 0.0, WHITE)
         if self.state != 'death':
             self.draw_health_bar()
         source = self.anim_map[self.state].animation_frame_horizontal()
@@ -123,6 +129,7 @@ class Necro:
             self.speed *= 1.2
 
         if self.health <= 0:
+            self.door = Rectangle(700, 400, 100, 100)
             self.hitbox = Rectangle(0, 0, 0, 0)
             self.projectiles = []
 

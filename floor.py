@@ -8,11 +8,19 @@ class Floor:
   NUM_FLOORS = 1 #TODO CHANGE AS FLOORS & ROOMS ARE ADDED
   NUM_ROOMS = 5
 
-  def __init__(self):
+  def __init__(self, level=1):
+    self.level = level
     self.rooms = []
     self.pos = (3, 2)
     self.map = [['x'] * 10 for _ in range(6)]
     self.map[3][2] = 'o'
+    self.colors = {
+      1: Color(255, 240, 240, 255),
+      2: Color(255, 220, 220, 255),
+      3: Color(255, 200, 200, 255),
+      4: Color(255, 180, 180, 255),
+      5: Color(255, 150, 150, 255),
+    }
     self.gen()
 
   def update(self, player):
@@ -38,13 +46,13 @@ class Floor:
         if tile_char == "o":
           room_num = str(random.randint(1, self.NUM_ROOMS))
           door_string = self.get_door_string(y, x)
-          self.rooms[y][x] = Room(f"tiles/{room_num}.json", door_string)
+          self.rooms[y][x] = Room(f"tiles/{room_num}.json", door_string, self, self.colors[self.level])
         elif tile_char == 's':
           door_string = self.get_door_string(y, x)
-          self.rooms[y][x] = Room("tiles/0.json", door_string)
+          self.rooms[y][x] = Room("tiles/0.json", door_string, self, self.colors[self.level])
         elif tile_char == 'b':
           door_string = self.get_door_string(y, x)
-          self.rooms[y][x] = Room("tiles/b.json", door_string)
+          self.rooms[y][x] = Room("tiles/b.json", door_string, self, self.colors[self.level])
 
 
   def get_door_string(self, y, x):
@@ -87,3 +95,12 @@ class Floor:
           self.pos = (y, x+1)
           self.map[y][x+1] = 'o'
           player.rect.x = 80
+
+
+  def next_floor(self):
+    self.level += 1
+    self.rooms = []
+    self.pos = (3, 2)
+    self.map = [['x'] * 10 for _ in range(6)]
+    self.map[3][2] = 'o'
+    self.gen()

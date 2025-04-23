@@ -25,17 +25,18 @@ class Room:
 
     # Initializes floor texture and empty grid once
 
-    def __init__(self, map, door_string):
+    def __init__(self, map, door_string, floor, color):
         with open(map, 'r') as file:
             self.map = json.load(file)
         self.door_string = door_string
 
+        self.floor = floor
         self.doors = []
         self.rectangles = []
         self.spikes = []
         self.objects = []
         self.enemies = []
-        self.color = Color(255, 200, 200, 255)
+        self.color = color
 
         self.gen()
 
