@@ -83,6 +83,9 @@
             }
         },
         "13.json": {
+            "expandedObjectLayers": [
+                3
+            ],
             "scale": 3,
             "selectedLayer": 1,
             "viewCenter": {
@@ -138,8 +141,8 @@
             "scale": 3.18,
             "selectedLayer": 2,
             "viewCenter": {
-                "x": 120.12578616352201,
-                "y": 71.85534591194968
+                "x": 119.96855345911948,
+                "y": 71.69811320754717
             }
         },
         "5.json": {
