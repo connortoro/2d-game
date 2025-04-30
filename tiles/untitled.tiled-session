@@ -3,7 +3,7 @@
         "height": 4300,
         "width": 2
     },
-    "activeFile": "5.json",
+    "activeFile": "12.json",
     "expandedProjectPaths": [
         "."
     ],
@@ -59,7 +59,7 @@
             "scale": 3,
             "selectedLayer": 2,
             "viewCenter": {
-                "x": 93.33333333333333,
+                "x": 93.16666666666666,
                 "y": 68
             }
         },
@@ -70,8 +70,24 @@
             "scale": 3,
             "selectedLayer": 4,
             "viewCenter": {
-                "x": 108.33333333333333,
+                "x": 108.16666666666666,
                 "y": 61.33333333333333
+            }
+        },
+        "12.json": {
+            "scale": 3,
+            "selectedLayer": 2,
+            "viewCenter": {
+                "x": 123.83333333333333,
+                "y": 65
+            }
+        },
+        "13.json": {
+            "scale": 3,
+            "selectedLayer": 1,
+            "viewCenter": {
+                "x": 111.83333333333333,
+                "y": 73.33333333333333
             }
         },
         "2.json": {
@@ -130,40 +146,40 @@
             "scale": 3,
             "selectedLayer": 0,
             "viewCenter": {
-                "x": 118,
-                "y": 83
+                "x": 120,
+                "y": 71.83333333333331
             }
         },
         "6.json": {
             "scale": 4,
-            "selectedLayer": 0,
+            "selectedLayer": 3,
             "viewCenter": {
-                "x": 120,
-                "y": 72.125
+                "x": 120.125,
+                "y": 72
             }
         },
         "7.json": {
             "scale": 3,
             "selectedLayer": 0,
             "viewCenter": {
-                "x": 120,
-                "y": 71.83333333333331
+                "x": 119.83333333333333,
+                "y": 71.66666666666666
             }
         },
         "8.json": {
             "scale": 3,
             "selectedLayer": 0,
             "viewCenter": {
-                "x": 120,
-                "y": 71.83333333333331
+                "x": 119.83333333333333,
+                "y": 71.66666666666666
             }
         },
         "9.json": {
             "scale": 3.2260416666666667,
             "selectedLayer": 0,
             "viewCenter": {
-                "x": 119.96125282531483,
-                "y": 72.06974491443331
+                "x": 120.11624152405554,
+                "y": 71.9147562156926
             }
         },
         "b.json": {
@@ -208,7 +224,8 @@
         "8.json",
         "b.json",
         "10.json",
-        "11.json"
+        "11.json",
+        "12.json"
     ],
     "project": "untitled.tiled-project",
     "recentFiles": [
@@ -218,12 +235,12 @@
         "3.json",
         "9.json",
         "4.json",
-        "11.json",
-        "10.json",
-        "b.json",
-        "8.json",
+        "5.json",
+        "6.json",
         "7.json",
-        "6.json"
+        "8.json",
+        "b.json",
+        "10.json"
     ],
     "tileset.lastUsedFormat": "tsx",
     "tileset.tileSize": {
