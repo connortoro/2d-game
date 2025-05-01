@@ -68,6 +68,7 @@ class NPC:
                 return
             else:
                 player.speed += 40
+                player.displayed_speed += 10
                 player.gold -= 2
                 self.interacted = True
                 self.current_animation.animation_update()

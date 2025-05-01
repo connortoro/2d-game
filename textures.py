@@ -21,10 +21,11 @@ spark = None
 
 
 def load_textures():
-    global base, old_base, water, src_map, zombie, mummy, minion, bat, trader, necro, spark
+    global base, old_base, water, src_map, zombie, mummy, minion, bat, trader, necro, spark, speed_icon
     base = rl.load_texture("assets/textures/Dungeon Gathering Free Version/Set 1.png")
     old_base = rl.load_texture("assets/textures/tileset_gray.png")
     water = rl.load_texture("assets/textures/Dungeon Gathering Free Version/Set 4.5.png")
+    speed_icon = rl.load_texture("assets/textures/speed_icon.png")
     src_map = {
         'base.tsx': {
             'texture': base,

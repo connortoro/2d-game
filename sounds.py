@@ -23,6 +23,8 @@ class SoundManager:
 
         set_sound_pitch(self.sounds["hit_sound"], 0.8)
         set_sound_pitch(self.sounds["coin"], 0.8)
+
+
     def load_music(self):
         self.music_tracks["level_1_music"] = load_music_stream("assets/audio/rpg-city-8381.mp3")
         self.music_tracks["main_menu_music"] = load_music_stream("assets/audio/main_menu_music.mp3")
@@ -35,8 +37,11 @@ class SoundManager:
 
     def play_sound(self, sound_name):
         if sound_name in self.sounds:
-            play_sound(self.sounds[sound_name])
-        return
+            sound = self.sounds[sound_name]
+            set_sound_volume(sound, self.game_volume)
+            play_sound(sound)
+
+
     
     def play_music(self, music_name):
         if music_name in self.music_tracks:
@@ -50,8 +55,9 @@ class SoundManager:
     def update_game_volume(self, new_volume):
         self.game_volume = new_volume
         self.set_all_sounds_volume(self.game_volume)
+        self.config["game_volume"] = new_volume
 
     def update_music_volume(self, new_volume):
         self.music_volume = new_volume
-        if self.current_music:
-            set_music_volume(self.current_music, self.music_volume)
+        for track in self.music_tracks.values():
+            set_music_volume(track, self.music_volume)

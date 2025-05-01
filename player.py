@@ -43,10 +43,10 @@ class playerState(Enum):
     ATTACK_LEFT = "ATTACK_LEFT"
 
 class Player:
-    def __init__(self, texture):
+    def __init__(self, texture, sound_manager):
         """================================= BASICS ================================="""
         self.config = load_config()
-        self.sound_manager = SoundManager(self.config)
+        self.sound_manager = sound_manager
         sprite_width = 64.0 * 4
         sprite_height = 64.0 * 4
         self.rect = Rectangle(W / 2.0 - sprite_width / 2.0 , H / 2.0 - sprite_height / 2.0, sprite_width, sprite_height)
@@ -99,8 +99,9 @@ class Player:
         self.inventory = []
         self.position = (0, 0)
         self.score = 0
-        self.gold = 0
+        self.gold = 1000
         self.speed = 300
+        self.displayed_speed = 100
         """================================= DAMAGE EFFECTS ================================="""
         self.damage_timer = 0
         self.highlight_duration = 0.7  # duration of red highlight over player
@@ -117,7 +118,6 @@ class Player:
 
         """===================================== SOUNDS ======================================"""
         self.attack = self.sound_manager.sounds["attack"]
-        # set_sound_pitch(self.attack, .7)
 
         self.footstep_sound = self.sound_manager.sounds["footstep_sound"]
         self.footstep_threshold = 64

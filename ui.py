@@ -6,17 +6,18 @@ class PlayerUI:
     mm_offset = (50, 100)
     mm_tile_size = 15
 
-    def __init__(self, player, music, config):
+    def __init__(self, player, sound_manager, config):
         self.player = player #player reference
-        self.music = music #game music
+        self.sound_manager = sound_manager
         self.config = config
         self.game_volume = self.config["game_volume"]
         self.music_volume = self.config["music_volume"]
-        set_music_volume(self.music, self.music_volume)
+
+        self.sound_manager.update_music_volume(self.music_volume)
+        self.sound_manager.update_game_volume(self.game_volume)
         self.health_bar_texture = load_texture("assets/ui_textures/health_bar.png")
-        self.inventory_bar_texture = load_texture("assets/ui_textures/inventory_bar.png")
-        self.inv_selected_slot = None #currently selected slot
         self.background = load_texture("assets/textures/background.png")
+
     def draw(self, floor):
         self.draw_health_bar()
         self.draw_minimap(floor)
@@ -37,7 +38,10 @@ class PlayerUI:
 
         draw_texture_pro(textures.old_base, Rectangle(13*16, 4*16, 16, 16), Rectangle(x+6, y+60, 47, 47), Vector2(0, 0), 0.0, opac)
         draw_text(f"{self.player.dmg}", x+60, y+71, 25, opac)
-
+        
+        draw_texture_pro(textures.speed_icon, Rectangle(13*32, 4*32, 32, 32), Rectangle(x+12, y+110, 32, 32), Vector2(0,0), 0.0, opac)
+        draw_text(f"{self.player.displayed_speed}", x+60, y+115, 25, opac)
+        
     def draw_minimap(self, floor):
         map = floor.map
         blk = Color(100, 100, 100, 160)
@@ -88,35 +92,7 @@ class PlayerUI:
             heart_src = Rectangle(32, 0, 16, 16)  #empty heart on sheet
             draw_texture_pro(self.health_bar_texture, heart_src, Rectangle(start_x + (full_hearts + half_hearts + i) * heart_spacing, start_y, 48, 48), Vector2(0, 0), 0, WHITE)
         
-    def draw_inventory_bar(self):
-        
-        #inventory bar details
-        slot_size = 16
-        slot_gap = 2
-        inv_width = 75
-        inv_height = 24
-        border_thickness = 4
-        scale = 3 #scale of inventory
-
-
-        scaled_width = inv_width * scale
-        scaled_height = inv_height * scale
     
-        inventory_x = (W - scaled_width) // 2 #center horizontally
-        inventory_y = H - scaled_height - 10 #slightly above the bottom of screen
-        #draw texture to screen
-        draw_texture_pro(self.inventory_bar_texture, 
-                         Rectangle(0, 0, self.inventory_bar_texture.width, self.inventory_bar_texture.height), 
-                         Rectangle(inventory_x, inventory_y, scaled_width, scaled_height), Vector2(0, 0), 0, WHITE)
-
-        #logic to detect which slot player is hovering over
-        if self.inv_selected_slot is not None:
-            selected_slot_x = inventory_x + (self.inv_selected_slot * (slot_size + slot_gap) + border_thickness) * scale
-            selected_slot_y = inventory_y + border_thickness * scale
-
-            
-            draw_rectangle_lines(selected_slot_x, selected_slot_y, slot_size * scale, slot_size * scale, RED)
-
     def draw_main_menu(self):
 
         draw_texture(self.background, 0, 0, WHITE)
@@ -269,7 +245,7 @@ class PlayerUI:
                 self.music_volume = clamp(new_volume, 0.0, 1.0)
                 self.config["music_volume"] = self.music_volume
                 save_config(self.config)
-                self.player.sound_manager.update_music_volume(self.music_volume)
+                self.sound_manager.update_music_volume(self.music_volume)
 
         game_text = "Game Volume:"
         game_width = measure_text(game_text, 20)
@@ -288,7 +264,7 @@ class PlayerUI:
                 self.game_volume = clamp(new_game_volume, 0.0, 1.0)
                 self.config["game_volume"] = self.game_volume
                 save_config(self.config)
-                self.player.sound_manager.update_game_volume(self.game_volume)
+                self.sound_manager.update_game_volume(self.game_volume)
 
         mouse_pos = get_mouse_position()
 
@@ -327,9 +303,10 @@ class PlayerUI:
 
 
     def update(self):
-        self.inventory_key_input()
+        self.game_volume = self.config["game_volume"]
         self.music_volume = self.config["music_volume"]
-        set_music_volume(self.music, self.music_volume)
+        self.sound_manager.update_game_volume(self.game_volume)
+        self.sound_manager.update_music_volume(self.music_volume)
 
     def unload(self):
         unload_texture(self.health_bar_texture)

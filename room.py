@@ -25,7 +25,8 @@ class Room:
 
     # Initializes floor texture and empty grid once
 
-    def __init__(self, map, door_string, floor, color):
+    def __init__(self, map, door_string, floor, color, sound_manager):
+        self.sound_manager = sound_manager
         with open(map, 'r') as file:
             self.map = json.load(file)
         self.door_string = door_string
@@ -139,25 +140,25 @@ class Room:
                     if entity['name'] == 'zombie':
                         animation = Animation(0, 3, 1, 0, 16, 0.2, 0.2, REPEATING, 32, 32)
                         death_animation = Animation(0, 5, 1, 8, 16, .2, .2, ONESHOT, 32, 32)
-                        enemy = Enemy(textures.zombie, x , y , 70, 120, 30, animation, death_animation)
+                        enemy = Enemy(textures.zombie, x , y , 70, 120, 30, animation, death_animation, self.sound_manager)
                         self.enemies.append(enemy)
 
                     elif entity['name'] == 'minion':
                         animation = Animation(0, 3, 1, 0, 16, 0.2, 0.2, REPEATING, 32, 32)
                         death_animation = Animation(0, 4, 1, 10, 16, .2, .2, ONESHOT, 32, 32)
-                        enemy = Enemy(textures.minion, x , y , 20, 200, 8, animation, death_animation)
+                        enemy = Enemy(textures.minion, x , y , 20, 200, 8, animation, death_animation, self.sound_manager)
                         self.enemies.append(enemy)
 
                     elif entity['name'] == 'mummy':
                         animation = Animation(0, 3, 1, 0, 16, 0.2, 0.2, REPEATING, 32, 32)
                         death_animation = Animation(0, 4, 1, 10, 16, .2, .2, ONESHOT, 32, 32)
-                        enemy = Enemy(textures.mummy, x, y, 30, 135, 13, animation, death_animation)
+                        enemy = Enemy(textures.mummy, x, y, 30, 135, 13, animation, death_animation, self.sound_manager)
                         self.enemies.append(enemy)
 
                     elif entity['name'] == 'bat':
                         animation = Animation(0, 3, 1, 0, 16, 0.2, 0.2, REPEATING, 32, 32)
                         death_animation = Animation(0, 4, 1, 10, 16, .2, .2, ONESHOT, 32, 32)
-                        enemy = Enemy(textures.bat, x , y , 40, 110, 20, animation, death_animation)
+                        enemy = Enemy(textures.bat, x , y , 40, 110, 20, animation, death_animation, self.sound_manager)
                         self.enemies.append(enemy)
                     elif entity['name'] == 'necro':
                         enemy = Necro(textures.necro, x, y, self)

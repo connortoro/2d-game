@@ -10,7 +10,7 @@ from sounds import SoundManager
 
 #Init
 init_window(W, H, "My Game")
-set_target_fps(60)
+set_target_fps(1000)
 set_exit_key(0)
 init_audio_device()
 textures.load_textures()
@@ -20,9 +20,9 @@ last_music_state = None
 
 #player stuff
 player_texture = load_texture("assets/player_sheet/player_spritesheet.png")
-player = Player(player_texture)
-playerui = PlayerUI(player, sound_manager.music_tracks["level_1_music"], config)
-floor = Floor()
+player = Player(player_texture, sound_manager)
+playerui = PlayerUI(player, sound_manager, config)
+floor = Floor(sound_manager)
 
 # Game state enum
 class GameState(Enum):
@@ -45,13 +45,12 @@ def restart_game():
 
 def quit():
     unload_texture(player_texture)
-    unload_music_stream(sound_manager.current_music)  # Unload the music stream
+    unload_music_stream(sound_manager.current_music) 
     close_window()
 
 # Main game loop
 
 while not window_should_close():
-    ### Music Managing ###
     if sound_manager.current_music:
         update_music_stream(sound_manager.current_music)
     
@@ -86,12 +85,11 @@ while not window_should_close():
         end_drawing()
         continue
 
-    # Check for player death and update game state
+
     if game_state == GameState.PLAYING and player.health <= 0:
         game_over_timer = time.time()
         game_state = GameState.GAME_OVER
 
-    #allows animations in every state but paused and settings
     if game_state != GameState.PAUSED and game_state != GameState.SETTINGS:
         player.update(floor.get_current_room())
         floor.update(player)

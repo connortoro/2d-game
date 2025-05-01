@@ -11,8 +11,9 @@ class Enemy:
     H = 32
     SCALE = 4
 
-    def __init__(self, sheet, x, y, hp, speed, dmg, animation, death_animation):
+    def __init__(self, sheet, x, y, hp, speed, dmg, animation, death_animation, sound_manager):
         self.sheet = sheet
+        self.sound_manager = sound_manager
         self.vel = Vector2(0.0, 0.0)
         self.dmg = dmg
         self.speed = speed
@@ -107,6 +108,6 @@ class Enemy:
             x = self.rect.x + (self.rect.width / 2.0)
             y = self.rect.y + (self.rect.height / 2.0)
             if roll > 6:
-                room.objects.append(Heart(x, y))
+                room.objects.append(Heart(x, y, self.sound_manager))
             else:
-                room.objects.append(Gold(x, y))
+                room.objects.append(Gold(x, y, self.sound_manager))

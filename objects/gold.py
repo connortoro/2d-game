@@ -9,9 +9,9 @@ class coinState(Enum):
     PICKUP = "PICKUP"
 
 class Gold:
-    def __init__(self, x, y):
+    def __init__(self, x, y, sound_manager):
         self.config = load_config()
-        self.sound_manager = SoundManager(self.config)
+        self.sound_manager = sound_manager
         self.rect = Rectangle(x-25, y-25, 50, 50)
         self.pickup_sound = self.sound_manager.sounds["coin"]
         self.coin = load_texture("assets/textures/Dungeon Gathering Free Version/Coin Sheet.png")

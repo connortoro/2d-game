@@ -8,7 +8,8 @@ class Floor:
   NUM_FLOORS = 1 #TODO CHANGE AS FLOORS & ROOMS ARE ADDED
   NUM_ROOMS = 13
 
-  def __init__(self, level=1):
+  def __init__(self, sound_manager, level=1):
+    self.sound_manager = sound_manager
     self.level = level
     self.rooms = []
     self.pos = (3, 2)
@@ -46,13 +47,13 @@ class Floor:
         if tile_char == "o":
           room_num = str(random.randint(1, self.NUM_ROOMS))
           door_string = self.get_door_string(y, x)
-          self.rooms[y][x] = Room(f"tiles/{room_num}.json", door_string, self, self.colors[self.level])
+          self.rooms[y][x] = Room(f"tiles/{room_num}.json", door_string, self, self.colors[self.level], self.sound_manager)
         elif tile_char == 's':
           door_string = self.get_door_string(y, x)
-          self.rooms[y][x] = Room("tiles/0.json", door_string, self, self.colors[self.level])
+          self.rooms[y][x] = Room("tiles/0.json", door_string, self, self.colors[self.level], self.sound_manager)
         elif tile_char == 'b':
           door_string = self.get_door_string(y, x)
-          self.rooms[y][x] = Room("tiles/b.json", door_string, self, self.colors[self.level])
+          self.rooms[y][x] = Room("tiles/b.json", door_string, self, self.colors[self.level], self.sound_manager)
 
 
   def get_door_string(self, y, x):
