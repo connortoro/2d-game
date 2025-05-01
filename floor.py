@@ -54,6 +54,9 @@ class Floor:
         elif tile_char == 'b':
           door_string = self.get_door_string(y, x)
           self.rooms[y][x] = Room("tiles/b.json", door_string, self, self.colors[self.level], self.sound_manager)
+        elif tile_char == 't':
+          door_string = self.get_door_string(y, x)
+          self.rooms[y][x] = Room("tiles/5.json", door_string, self, self.colors[self.level], self.sound_manager)
 
 
   def get_door_string(self, y, x):
