@@ -2,7 +2,9 @@ from raylibpy import *
 from enemy import Enemy
 from animation import Animation, REPEATING, ONESHOT
 from necro import Necro
+from demon import Demon
 from npc import NPC
+import random
 import textures
 import json
 from config import *
@@ -160,9 +162,14 @@ class Room:
                         death_animation = Animation(0, 4, 1, 10, 16, .2, .2, ONESHOT, 32, 32)
                         enemy = Enemy(textures.bat, x , y , 40, 110, 20, animation, death_animation, self.sound_manager)
                         self.enemies.append(enemy)
-                    elif entity['name'] == 'necro':
-                        enemy = Necro(textures.necro, x, y, self)
+
+                    elif entity['name'] == 'boss':
+                        if random.random() < 0.5:
+                            enemy = Necro(textures.necro, x, y, self, self.sound_manager)
+                        else:
+                            enemy = Demon(textures.demon, x, y, self)
                         self.enemies.append(enemy)
+
                     elif entity['name'] == 'trader':
                         self.objects.append(NPC(x, y))
 

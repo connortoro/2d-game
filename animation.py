@@ -25,7 +25,7 @@ class Animation:
         return Rectangle (float(x), float(y), float(self.frame_width), float(self.frame_height))
 
     def animation_frame_horizontal(self): #for horizontal sprite sheets
-        x = (self.cur % (self.lst + 1)) * self.frame_height
+        x = (self.cur % (self.lst + 1)) * self.frame_width
         y = self.offset * self.offset_distance
         rect = Rectangle (float(x), float(y), float(self.frame_width), float(self.frame_height))
         if self.flipped:

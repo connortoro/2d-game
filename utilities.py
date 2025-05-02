@@ -9,3 +9,8 @@ def direction_between_rects(a: Rectangle, b: Rectangle):
   va = center_of_rect(a)
   vb = center_of_rect(b)
   return vector2_normalize(vector2_subtract(vb, va))
+
+def distance_between_rects(a: Rectangle, b: Rectangle):
+  va = center_of_rect(a)
+  vb = center_of_rect(b)
+  return vector2_length(vector2_subtract(vb, va))

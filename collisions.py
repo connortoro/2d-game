@@ -4,7 +4,7 @@ from config import *
 def check_enemy_collisions(player, room):
     for enemy in room.enemies:
         if not enemy.is_alive or enemy.is_dying:
-            continue  # Skip dead enemies
+            continue
 
         if check_collision_recs(player.hitbox, enemy.hitbox):
             player.take_damage(enemy.dmg, enemy.hitbox)

@@ -38,9 +38,9 @@ previous_state = None #used to track last state (used for settings menu primaril
 def restart_game():
     global game_state, player, floor, playerui
     game_state = GameState.PLAYING
-    player = Player(player_texture)
-    floor = Floor()
-    playerui = PlayerUI(player, sound_manager.music_tracks["level_1_music"], config)
+    player = Player(player_texture, sound_manager)
+    floor = Floor(sound_manager)
+    playerui = PlayerUI(player, sound_manager, config)
 
 
 def quit():

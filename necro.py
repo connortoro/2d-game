@@ -12,7 +12,8 @@ class Necro:
     H = 200
     SCALE = 4
 
-    def __init__(self, sheet, x, y, room):
+    def __init__(self, sheet, x, y, room, sound_manager):
+        self.sound_manager = sound_manager
         self.room = room
         self.sheet = sheet
         self.vel = Vector2(0.0, 0.0)
@@ -37,7 +38,7 @@ class Necro:
         self.animation = self.idle_animation
 
         self.hitbox = Rectangle(self.rect.x + (self.rect.width - 90) / 2, self.rect.y + self.rect.height - 60, 90, 110)
-        self.health = 30
+        self.health = 300
         self.maxHealth = self.health
         self.is_alive = True
         self.is_dying = False
@@ -173,8 +174,8 @@ class Necro:
                     self.projectiles.append(Projectile(c.x, c.y, 15, dir))
         elif roll == 2:
             #necromance
-            self.room.enemies.append(Enemy(textures.minion, 100, 100, 30, 140, 10, Animation(0, 3, 1, 0, 16, 0.2, 0.2, REPEATING, 32, 32), Animation(0, 4, 1, 10, 16, .2, .2, ONESHOT, 32, 32)))
-            self.room.enemies.append(Enemy(textures.minion, 1200, 650, 30, 140, 10, Animation(0, 3, 1, 0, 16, 0.2, 0.2, REPEATING, 32, 32), Animation(0, 4, 1, 10, 16, .2, .2, ONESHOT, 32, 32)))
+            self.room.enemies.append(Enemy(textures.minion, 100, 100, 30, 140, 10, Animation(0, 3, 1, 0, 16, 0.2, 0.2, REPEATING, 32, 32), Animation(0, 4, 1, 10, 16, .2, .2, ONESHOT, 32, 32), self.sound_manager))
+            self.room.enemies.append(Enemy(textures.minion, 1200, 650, 30, 140, 10, Animation(0, 3, 1, 0, 16, 0.2, 0.2, REPEATING, 32, 32), Animation(0, 4, 1, 10, 16, .2, .2, ONESHOT, 32, 32), self.sound_manager))
         elif roll == 3:
             #shotgun
             dir = direction_between_rects(Rectangle(c.x, c.y, 1, 1), player.hitbox)
