@@ -94,8 +94,9 @@ class Player:
         self.is_hurt = False
         self.hurt_duration = 0.4
         """================================= PLAYER STATS ================================="""
-        self.health = 150
-        self.max_health = 150
+        self.health = 100
+        self.max_health = 100
+        self.absolute_health = 160
         self.inventory = []
         self.position = (0, 0)
         self.score = 0
@@ -110,7 +111,7 @@ class Player:
         self.knockback_duration = 0.3
         self.knockback_direction = None
         """================================= ATTACK MECHANIC ================================="""
-        self.dmg = 10
+        self.dmg = 100
         self.attack_timer = 0
         self.attack_cooldown = 0.6
         self.attack_range = 120  # Range of the attack
@@ -136,8 +137,8 @@ class Player:
             self.knockback_direction = Vector2(0, 0) #fallback
 
         self.is_hurt = True
-        if self.health == 0:  # player died
-            self.state = playerState.DEAD  # set player state to dead
+        if self.health == 0:  
+            self.state = playerState.DEAD  
 
     def heal(self, n):
         self.health = min(self.max_health, self.health + n)
@@ -158,7 +159,7 @@ class Player:
         self.update_animation()
 
     def draw(self):
-        # Get the movement animation source
+        
         source = self.current_animation.animation_frame_horizontal()
         origin = Vector2(0.0, 0.0)
 
@@ -178,7 +179,6 @@ class Player:
                 #draw sprite
                 draw_texture_pro(self.sprite, source, self.rect, origin, 0.0, color)
 
-            # If attacking, draw the attack animation on top so player can move while attacking
             if hasattr(self, 'attacking') and self.attacking and self.attack_animation:
                 attack_source = self.attack_animation.animation_frame_horizontal()
 
@@ -232,14 +232,13 @@ class Player:
         self.hitbox.x = self.rect.x + (self.rect.width - self.hitbox.width) / 2
         self.hitbox.y = self.rect.y + self.rect.height - self.hitbox.height - self.hitbox_offset
 
-        # foostep sound update
         self.distance_moved += vector2_length(Vector2(dx, dy))
         if self.distance_moved >= self.footstep_threshold:
             self.distance_moved = 0
             self.sound_manager.play_sound("footstep_sound")
 
     def update_animation(self):
-        if self.is_hurt: #only plays when player is hurt
+        if self.is_hurt:
             self.current_animation = self.animations[playerState.HURT]
         else:
             self.current_animation = self.animations[self.state]
@@ -252,9 +251,8 @@ class Player:
 
     def handle_death(self):
         # prevent movement
-        self.vel.x, self.vel.y = 0.0, 0.0  # Stop movement
+        self.vel.x, self.vel.y = 0.0, 0.0 
 
-        #change state to dead
         self.state = playerState.DEAD
         self.current_animation = self.animations[self.state]
 
@@ -271,7 +269,7 @@ class Player:
                 self.animations[self.attack_state].reset()
             return
 
-        # Handle attack initiation
+
         if self.attack_timer >= 0:
             self.attack_timer -= get_frame_time()
         elif is_key_down(KEY_LEFT):
@@ -295,34 +293,34 @@ class Player:
     def perform_attack(self, enemies, dir):
         attack_rect = None
 
-        # Create attack rectangle based on direction
-        if dir == 'N':  # North/Up
+        
+        if dir == 'N': 
             attack_rect = Rectangle(
-                self.hitbox.x - self.attack_range/2 + self.hitbox.width/2,  # Centered horizontally
-                self.hitbox.y - self.attack_range,  # Above the player
-                self.hitbox.width + self.attack_range,  # Wider than player
-                self.attack_range  # Height = attack range
+                self.hitbox.x - self.attack_range/2 + self.hitbox.width/2,  
+                self.hitbox.y - self.attack_range,  
+                self.hitbox.width + self.attack_range,  
+                self.attack_range  
             )
-        elif dir == 'E':  # East/Right
+        elif dir == 'E':  
             attack_rect = Rectangle(
-                self.hitbox.x + self.hitbox.width,  # Right of player
-                self.hitbox.y - self.attack_range/2 + self.hitbox.height/2,  # Centered vertically
-                self.attack_range,  # Width = attack range
-                self.hitbox.height + self.attack_range  # Taller than player
+                self.hitbox.x + self.hitbox.width,  
+                self.hitbox.y - self.attack_range/2 + self.hitbox.height/2,  
+                self.attack_range,  
+                self.hitbox.height + self.attack_range  
             )
-        elif dir == 'S':  # South/Down
+        elif dir == 'S':  
             attack_rect = Rectangle(
-                self.hitbox.x - self.attack_range/2 + self.hitbox.width/2,  # Centered horizontally
-                self.hitbox.y + self.hitbox.height,  # Below the player
-                self.hitbox.width + self.attack_range,  # Wider than player
-                self.attack_range  # Height = attack range
+                self.hitbox.x - self.attack_range/2 + self.hitbox.width/2,  
+                self.hitbox.y + self.hitbox.height,  
+                self.hitbox.width + self.attack_range,  
+                self.attack_range  
             )
-        elif dir == 'W':  # West/Left
+        elif dir == 'W': 
             attack_rect = Rectangle(
-                self.hitbox.x - self.attack_range,  # Left of player
-                self.hitbox.y - self.attack_range/2 + self.hitbox.height/2,  # Centered vertically
-                self.attack_range,  # Width = attack range
-                self.hitbox.height + self.attack_range  # Taller than player
+                self.hitbox.x - self.attack_range,  
+                self.hitbox.y - self.attack_range/2 + self.hitbox.height/2,  
+                self.attack_range,  
+                self.hitbox.height + self.attack_range  
             )
 
         for enemy in enemies:
@@ -332,7 +330,11 @@ class Player:
                 enemy.take_damage(self.dmg, dir)
 
     def increase_health(self, amount):
-        self.health = min(self.max_health, self.health + amount)
+        if self.max_health + amount <= self.absolute_health:
+            self.max_health += amount
+            self.health = min(self.health + 20, self.max_health)
+            return True
+        return False
 
     def increase_speed(self, amount):
         self.vel.x += amount

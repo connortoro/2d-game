@@ -97,6 +97,7 @@ while not window_should_close():
 
     floor.draw()
     player.draw()
+    playerui.draw_instructions()
     playerui.draw(floor)
 
     if game_state == GameState.PAUSED:

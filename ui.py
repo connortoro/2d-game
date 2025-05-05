@@ -66,7 +66,7 @@ class PlayerUI:
     #draw health bar to screen
     def draw_health_bar(self):
         health_percentage = self.player.health / self.player.max_health
-        total_hearts = 5 #5 total hearts (100 health)
+        total_hearts = self.player.max_health // 20
         #define heart logic
         full_hearts = int(health_percentage * total_hearts)
         half_hearts= int((health_percentage * total_hearts - full_hearts) * 2)
@@ -328,7 +328,6 @@ class PlayerUI:
         game_over_text_width = measure_text(game_over_text, 60)
         score_text_width = measure_text(score_text, 40)
         draw_text(game_over_text, W/2 - game_over_text_width/2, H/2 - 100, 60, RED)
-        draw_text(score_text, W/2 - score_text_width/2, H/2 - 50, 40, WHITE)  # Centered properly
 
         draw_rectangle_rec(restart_button, DARKGRAY)
         restart_text = "Restart"
@@ -353,12 +352,12 @@ class PlayerUI:
             "Controls:",
             "W, A, S, D: Move",
             "Arrow Up, Down, Left, Right: Attack Direction",
-            "E: Interact",
-            "X: Exit Dialog",
-            "Kill as many enemies as you can before dying!"
+            "Kill everything in your path!"
         ]
+        opac  = Color(255, 255, 255, 130)
         instructions_background_height = 140
-        draw_rectangle(20, H - instructions_background_height - 10, 500, instructions_background_height, Color(0, 0, 0, 180))
+        rect = Rectangle(20, H - instructions_background_height - 10, 500, instructions_background_height)
+        draw_rectangle_rounded(rect, 0.2, 0, Color(0, 0, 0, 140))
         #draws instructions
         for i, line in enumerate(instructions_text):
-            draw_text(line, 25, H - 140 + (i * 20), 20, WHITE)
+            draw_text(line, 25, H - 140 + (i * 20), 20, opac)
