@@ -166,8 +166,17 @@ class Necro:
                     self.projectiles.append(Projectile(c.x, c.y, 15, dir))
         elif roll == 2:
             #necromance
-            self.room.enemies.append(Enemy(textures.minion, 100, 100, 30, 140, 10, Animation(0, 3, 1, 0, 16, 0.2, 0.2, REPEATING, 32, 32), Animation(0, 4, 1, 10, 16, .2, .2, ONESHOT, 32, 32)))
-            self.room.enemies.append(Enemy(textures.minion, 1200, 650, 30, 140, 10, Animation(0, 3, 1, 0, 16, 0.2, 0.2, REPEATING, 32, 32), Animation(0, 4, 1, 10, 16, .2, .2, ONESHOT, 32, 32)))
+            self.room.enemies.append(Enemy(textures.minion, 100, 100, 30, 140, 10,
+                Animation(0, 3, 1, 0, 16, 0.2, 0.2, REPEATING, 32, 32),
+                Animation(0, 4, 1, 10, 16, .2, .2, ONESHOT, 32, 32),
+                self.room.world_width,
+                self.room.world_height))
+
+            self.room.enemies.append(Enemy(textures.minion, 1200, 650, 30, 140, 10,
+                Animation(0, 3, 1, 0, 16, 0.2, 0.2, REPEATING, 32, 32),
+                Animation(0, 4, 1, 10, 16, .2, .2, ONESHOT, 32, 32),
+                self.room.world_width,
+                self.room.world_height))
         elif roll == 3:
             #shotgun
             dir = direction_between_rects(Rectangle(c.x, c.y, 1, 1), player.hitbox)
