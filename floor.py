@@ -5,8 +5,8 @@ from raylibpy import *
 from config import *
 
 class Floor:
-  NUM_FLOORS = 1 #TODO CHANGE AS FLOORS & ROOMS ARE ADDED
-  NUM_ROOMS = 13
+  NUM_FLOORS = 5
+  NUM_ROOMS = 12
 
   def __init__(self, sound_manager, level=1):
     self.sound_manager = sound_manager
@@ -56,7 +56,7 @@ class Floor:
           self.rooms[y][x] = Room("tiles/b.json", door_string, self, self.colors[self.level], self.sound_manager)
         elif tile_char == 't':
           door_string = self.get_door_string(y, x)
-          self.rooms[y][x] = Room("tiles/5.json", door_string, self, self.colors[self.level], self.sound_manager)
+          self.rooms[y][x] = Room("tiles/t.json", door_string, self, self.colors[self.level], self.sound_manager)
 
 
   def get_door_string(self, y, x):

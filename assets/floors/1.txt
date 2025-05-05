@@ -2,5 +2,5 @@ x x x x x x x x x x
 x x o x x t x x b x
 x o o x x o x x t x
 x x s o o o o o o x
-x t b x x o x x x x
+x t o x x o x x x x
 x x x x x x x x x x
