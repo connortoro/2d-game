@@ -100,7 +100,7 @@ class Player:
         self.inventory = []
         self.position = (0, 0)
         self.score = 0
-        self.gold = 1000
+        self.gold = 0
         self.speed = 300
         self.displayed_speed = 100
         """================================= DAMAGE EFFECTS ================================="""
@@ -111,7 +111,7 @@ class Player:
         self.knockback_duration = 0.3
         self.knockback_direction = None
         """================================= ATTACK MECHANIC ================================="""
-        self.dmg = 100
+        self.dmg = 10
         self.attack_timer = 0
         self.attack_cooldown = 0.6
         self.attack_range = 120  # Range of the attack
