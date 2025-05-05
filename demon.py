@@ -2,6 +2,7 @@ from raylibpy import *
 from animation import Animation, REPEATING, ONESHOT
 from collisions import *
 from utilities import *
+from utilities import distance_between_rects
 import textures
 
 class Demon:
@@ -9,8 +10,9 @@ class Demon:
     H = 160
     SCALE = 3
 
-    def __init__(self, sheet, x, y, room):
+    def __init__(self, sheet, x, y, room, sound_manager):
         self.room = room
+        self.sound_manager = sound_manager 
         self.sheet = sheet
         self.vel = Vector2(0.0, 0.0)
         self.dmg = 50
@@ -152,7 +154,8 @@ class Demon:
 
         color = RED if self.health < self.max_health/2 else WHITE
         draw_texture_pro(self.sheet, source, dest_rect, Vector2(0.0, 0.0), 0.0, color)
-            
+        #draw_rectangle_lines_ex(self.hitbox, 2, GREEN)
+
 
     def draw_health_bar(self):
         draw_rectangle(self.hitbox.x+10, self.hitbox.y-130, 100, 8, RED)

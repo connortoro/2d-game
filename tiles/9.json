@@ -50,7 +50,7 @@
                 {
                  "height":0,
                  "id":1,
-                 "name":"minion",
+                 "name":"orc_dasher",
                  "point":true,
                  "rotation":0,
                  "type":"",
@@ -62,7 +62,7 @@
                 {
                  "height":0,
                  "id":2,
-                 "name":"minion",
+                 "name":"orc",
                  "point":true,
                  "rotation":0,
                  "type":"",
@@ -74,7 +74,7 @@
                 {
                  "height":0,
                  "id":3,
-                 "name":"mummy",
+                 "name":"orc",
                  "point":true,
                  "rotation":0,
                  "type":"",
@@ -86,7 +86,7 @@
                 {
                  "height":0,
                  "id":4,
-                 "name":"bat",
+                 "name":"orc",
                  "point":true,
                  "rotation":0,
                  "type":"",
@@ -98,7 +98,7 @@
                 {
                  "height":0,
                  "id":5,
-                 "name":"bat",
+                 "name":"orc_dasher",
                  "point":true,
                  "rotation":0,
                  "type":"",

@@ -1,8 +1,14 @@
 from orc import Orc, OrcType
 from animation import Animation, REPEATING, ONESHOT
-from raylibpy import get_frame_time, Vector2, draw_circle_lines, Color
+from raylibpy import get_frame_time, Vector2, draw_circle_lines, Color, Rectangle, check_collision_recs, draw_texture_pro, WHITE
 from utilities import center_of_rect, vector2_subtract, vector2_length, vector2_normalize, direction_between_rects, vector2_scale
 from collisions import check_collision_line_rec
+from raylibpy import (
+    get_frame_time, Vector2, draw_circle_lines, Color,
+    Rectangle, check_collision_recs, draw_texture_pro,
+    draw_rectangle, WHITE, RED, GREEN
+)
+
 
 class OrcBoss(Orc):
     def __init__(self, sheet, x, y, world_width, world_height):
@@ -11,6 +17,7 @@ class OrcBoss(Orc):
         self.speed = 150
         self.sprite_offset_y = 80
         self.sprite_offset_x = -100
+        self.door = None
 
         self.detection_radius = 1000  
 
@@ -59,10 +66,13 @@ class OrcBoss(Orc):
 
         self.world_width = world_width
         self.world_height = world_height
-
+        self.raging = False
     def update(self, player, obstacles, room):
+        if self.door and check_collision_recs(self.door, player.hitbox):
+            room.floor.next_floor()
         if not self.is_alive:
             return
+
 
         if self.is_dashing:
             self.dash_timer -= get_frame_time()
@@ -117,7 +127,7 @@ class OrcBoss(Orc):
             return
 
         if self.in_detection_range(player):
-            if self.dash_cooldown_timer <= 0:
+            if self.health < self.maxHealth * 0.9 and self.dash_cooldown_timer <= 0:
                 src = center_of_rect(self.rect)
                 tgt = center_of_rect(player.hitbox)
                 dist = vector2_length(vector2_subtract(tgt, src))
@@ -127,6 +137,7 @@ class OrcBoss(Orc):
                     self.is_dashing = True
                     self.dash_timer = self.dash_duration
                     self.dash_cooldown_timer = self.dash_cooldown
+
 
         super().update(player, obstacles, room)
 
@@ -181,9 +192,41 @@ class OrcBoss(Orc):
             self.animation.animation_update()
         else:
             super().update_animation()
+    def take_damage(self, amount, direction):
+        self.health -= amount
+
+        # You can still trigger rage mode if needed
+        if self.health < self.maxHealth / 2 and not self.raging:
+            self.raging = True
+            self.attack_duration *= 0.75
+            self.speed *= 1.3
+            self.dmg = int(self.dmg * 1.5)
+
+        # Door + death handling
+        if self.health <= 0 and self.door is None:
+            self.door = Rectangle(700, 400, 100, 100)
+            self.is_alive = False
+
+    def draw_health_bar(self):
+        bar_width = 100
+        bar_height = 10
+        padding = 130
+        ratio = self.health / self.maxHealth
+        x = self.hitbox.x + (self.hitbox.width - bar_width) / 2
+        y = self.hitbox.y - padding - bar_height
+        draw_rectangle(int(x), int(y), bar_width, bar_height, RED)
+        draw_rectangle(int(x), int(y), int(bar_width * ratio), bar_height, GREEN)
 
     def draw(self):
+        if self.door:
+            from textures import old_base  # Make sure `textures` is accessible
+            draw_texture_pro(old_base, Rectangle(3*16, 2*16, 16, 16), 
+                             self.door, Vector2(0, 0), 0.0, WHITE)
+
         super().draw()
+
+        if self.is_alive:
+            self.draw_health_bar()
 
         if self.is_spin_charging or self.is_spinning:
             cx, cy = center_of_rect(self.rect)
