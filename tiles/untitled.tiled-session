@@ -3,7 +3,7 @@
         "height": 4300,
         "width": 2
     },
-    "activeFile": "12.json",
+    "activeFile": "6.json",
     "expandedProjectPaths": [
         "."
     ],
@@ -13,11 +13,11 @@
             "scaleInDock": 1
         },
         "0.json": {
-            "scale": 4,
+            "scale": 8.221458333333333,
             "selectedLayer": 0,
             "viewCenter": {
-                "x": 120,
-                "y": 72.125
+                "x": 120.05169399184047,
+                "y": 72.00668981070876
             }
         },
         "0.tmj": {
@@ -37,11 +37,11 @@
             }
         },
         "1.json": {
-            "scale": 4,
+            "scale": 5.51,
             "selectedLayer": 0,
             "viewCenter": {
-                "x": 120,
-                "y": 72.125
+                "x": 82.84936479128858,
+                "y": 71.86932849364791
             }
         },
         "1.tmx": {
@@ -52,47 +52,6 @@
                 "y": 88
             }
         },
-        "10.json": {
-            "expandedObjectLayers": [
-                5
-            ],
-            "scale": 3,
-            "selectedLayer": 2,
-            "viewCenter": {
-                "x": 93.16666666666666,
-                "y": 68
-            }
-        },
-        "11.json": {
-            "expandedObjectLayers": [
-                5
-            ],
-            "scale": 3,
-            "selectedLayer": 4,
-            "viewCenter": {
-                "x": 108.16666666666666,
-                "y": 61.33333333333333
-            }
-        },
-        "12.json": {
-            "scale": 3,
-            "selectedLayer": 2,
-            "viewCenter": {
-                "x": 123.83333333333333,
-                "y": 65
-            }
-        },
-        "13.json": {
-            "expandedObjectLayers": [
-                3
-            ],
-            "scale": 3,
-            "selectedLayer": 1,
-            "viewCenter": {
-                "x": 111.83333333333333,
-                "y": 73.33333333333333
-            }
-        },
         "2.json": {
             "expandedObjectLayers": [
                 3
@@ -100,8 +59,8 @@
             "scale": 3.2725,
             "selectedLayer": 2,
             "viewCenter": {
-                "x": 130.48128342245988,
-                "y": 71.9633307868602
+                "x": 120.0916730328495,
+                "y": 71.81054239877767
             }
         },
         "2.tmx": {
@@ -116,11 +75,11 @@
             "expandedObjectLayers": [
                 3
             ],
-            "scale": 4,
+            "scale": 2.61,
             "selectedLayer": 2,
             "viewCenter": {
-                "x": 120,
-                "y": 72.125
+                "x": 119.92337164750958,
+                "y": 72.03065134099617
             }
         },
         "3.tmx": {
@@ -141,64 +100,24 @@
             "scale": 3.18,
             "selectedLayer": 2,
             "viewCenter": {
-                "x": 119.96855345911948,
-                "y": 71.69811320754717
-            }
-        },
-        "5.json": {
-            "scale": 3,
-            "selectedLayer": 0,
-            "viewCenter": {
-                "x": 120,
-                "y": 71.83333333333331
+                "x": 119.81132075471697,
+                "y": 71.22641509433961
             }
         },
         "6.json": {
-            "scale": 4,
-            "selectedLayer": 3,
-            "viewCenter": {
-                "x": 120.125,
-                "y": 72
-            }
-        },
-        "7.json": {
-            "scale": 3,
+            "scale": 5.5,
             "selectedLayer": 0,
             "viewCenter": {
-                "x": 119.83333333333333,
-                "y": 71.66666666666666
-            }
-        },
-        "8.json": {
-            "scale": 3,
-            "selectedLayer": 0,
-            "viewCenter": {
-                "x": 119.83333333333333,
-                "y": 71.66666666666666
-            }
-        },
-        "9.json": {
-            "scale": 3.2260416666666667,
-            "selectedLayer": 0,
-            "viewCenter": {
-                "x": 120.11624152405554,
-                "y": 71.9147562156926
-            }
-        },
-        "b.json": {
-            "scale": 3,
-            "selectedLayer": 0,
-            "viewCenter": {
-                "x": 120,
-                "y": 71.83333333333331
+                "x": 107.54545454545456,
+                "y": 91.45454545454547
             }
         },
         "base.tsx": {
             "scaleInDock": 2,
-            "scaleInEditor": 1.8027
+            "scaleInEditor": 4
         },
         "old_base.tsx": {
-            "scaleInDock": 2,
+            "scaleInDock": 5.5,
             "scaleInEditor": 5.5
         },
         "water.tsx": {
@@ -219,16 +138,8 @@
         "1.json",
         "0.json",
         "3.json",
-        "9.json",
-        "4.json",
-        "5.json",
-        "6.json",
-        "7.json",
-        "8.json",
-        "b.json",
-        "10.json",
-        "11.json",
-        "12.json"
+        "base.tsx",
+        "6.json"
     ],
     "project": "untitled.tiled-project",
     "recentFiles": [
@@ -236,14 +147,14 @@
         "1.json",
         "0.json",
         "3.json",
-        "9.json",
-        "4.json",
-        "5.json",
+        "base.tsx",
         "6.json",
-        "7.json",
-        "8.json",
-        "b.json",
-        "10.json"
+        "4.json",
+        "3.tmx",
+        "1.tmx",
+        "0.tmx",
+        "2.tmx",
+        "water.tsx"
     ],
     "tileset.lastUsedFormat": "tsx",
     "tileset.tileSize": {

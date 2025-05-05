@@ -1,7 +1,6 @@
 from raylibpy import *
 from enum import Enum
 from animation import Animation, REPEATING, ONESHOT
-from sounds import SoundManager
 from room import Room  # Import the Room class
 import time
 from collisions import *
@@ -43,10 +42,8 @@ class playerState(Enum):
     ATTACK_LEFT = "ATTACK_LEFT"
 
 class Player:
-    def __init__(self, texture, sound_manager):
+    def __init__(self, texture):
         """================================= BASICS ================================="""
-        self.config = load_config()
-        self.sound_manager = sound_manager
         sprite_width = 64.0 * 4
         sprite_height = 64.0 * 4
         self.rect = Rectangle(W / 2.0 - sprite_width / 2.0 , H / 2.0 - sprite_height / 2.0, sprite_width, sprite_height)
@@ -54,8 +51,8 @@ class Player:
         self.sprite = texture
         self.dir = RIGHT  # right
         self.death = load_texture("assets/player_sheet/player_spritesheet.png")
-        feet_width = 10.0 * 4
 
+        feet_width = 10.0 * 4
         feet_width = 10.0 * 4
         feet_height = 8.0 * 6  # Make collision box shorter, just for feet
         self.hitbox_offset = 50
@@ -99,9 +96,8 @@ class Player:
         self.inventory = []
         self.position = (0, 0)
         self.score = 0
-        self.gold = 1000
+        self.gold = 0
         self.speed = 300
-        self.displayed_speed = 100
         """================================= DAMAGE EFFECTS ================================="""
         self.damage_timer = 0
         self.highlight_duration = 0.7  # duration of red highlight over player
@@ -117,13 +113,18 @@ class Player:
         self.attack_angle = 90  # Angle of the attack arc (in degrees)
 
         """===================================== SOUNDS ======================================"""
-        self.attack = self.sound_manager.sounds["attack"]
+        self.attack = load_sound("assets/audio/sword-sound-260274.wav")
+        # set_sound_pitch(self.attack, .7)
+        # set_sound_volume(self.attack, .5)
 
-        self.footstep_sound = self.sound_manager.sounds["footstep_sound"]
+        self.footstep_sound = load_sound("assets/audio/08_Step_rock_02.wav")
+        set_sound_volume(self.footstep_sound, .45)
         self.footstep_threshold = 64
         self.distance_moved = 0
 
-        self.hit_sound = self.sound_manager.sounds["hit_sound"]
+        self.hit_sound = load_sound("assets/audio/Sword Impact Hit 2.wav")
+        set_sound_pitch(self.hit_sound, .8)
+        set_sound_volume(self.hit_sound, .5)
 
     def take_damage(self, damage_amount, enemy_hitbox):
         self.health = max(0, self.health - damage_amount)  # take damage
@@ -143,7 +144,6 @@ class Player:
         self.health = min(self.max_health, self.health + n)
 
     def update(self, room: Room):
-
         if self.state == playerState.DEAD:
             self.handle_death()
 
@@ -177,16 +177,6 @@ class Player:
             else:
                 #draw sprite
                 draw_texture_pro(self.sprite, source, self.rect, origin, 0.0, color)
-
-            # If attacking, draw the attack animation on top so player can move while attacking
-            if hasattr(self, 'attacking') and self.attacking and self.attack_animation:
-                attack_source = self.attack_animation.animation_frame_horizontal()
-
-
-
-            # Draw hitboxes for debugging
-            #draw_rectangle_lines_ex(self.hitbox, 1, RED)
-            #draw_rectangle_lines_ex(self.rect, 1, RED)
 
     def handle_movement(self):
         if self.state == playerState.DEAD:
@@ -236,7 +226,7 @@ class Player:
         self.distance_moved += vector2_length(Vector2(dx, dy))
         if self.distance_moved >= self.footstep_threshold:
             self.distance_moved = 0
-            self.sound_manager.play_sound("footstep_sound")
+            play_sound(self.footstep_sound)
 
     def update_animation(self):
         if self.is_hurt: #only plays when player is hurt
@@ -291,7 +281,6 @@ class Player:
             self.attack_state = playerState.ATTACK_DOWN
             self.perform_attack(enemies, 'S')
 
-
     def perform_attack(self, enemies, dir):
         attack_rect = None
 
@@ -327,7 +316,7 @@ class Player:
 
         for enemy in enemies:
             if check_collision_recs(attack_rect, enemy.hitbox):
-                self.sound_manager.play_sound("hit_sound")
+                play_sound(self.hit_sound)
                 dir = direction_between_rects(self.hitbox, enemy.hitbox)
                 enemy.take_damage(self.dmg, dir)
 

@@ -3,12 +3,9 @@ from enemy import Enemy
 from animation import Animation, REPEATING, ONESHOT
 from necro import Necro
 from npc import NPC
-from orc_boss import OrcBoss
 import textures
 import json
 from config import *
-from orc import Orc
-from orc_dasher import OrcDasher
 
 class Room:
 
@@ -39,9 +36,6 @@ class Room:
         self.objects = []
         self.enemies = []
         self.color = Color(255, 200, 200, 255)
-
-        self.world_width = COLS * SCALE
-        self.world_height = (len(self.map['layers'][0]['data']) // COLS) * SCALE
 
         self.gen()
 
@@ -118,7 +112,52 @@ class Room:
         for dir in self.door_string:
             x, y = self.door_dest[dir]
             self.doors.append(Rectangle((x*SCALE)-4 , (y*SCALE)-4 , SCALE+8, SCALE+8))
+    """
+    def gen_enemies(self, layer):
+        # Calculate room dimensions based on your tilemap
+        room_width = COLS * SCALE  # Total width in pixels
+        room_height = (len(self.map['layers'][0]['data']) // COLS) * SCALE  # Total height in pixels
+        
+        for entity in layer['objects']:
+            x = entity['x'] * (SCALE / TILE_SIZE)
+            y = entity['y'] * (SCALE / TILE_SIZE)
 
+            if entity['name'] == 'zombie':
+                animation = Animation(0, 3, 1, 0, 16, 0.2, 0.2, REPEATING, 32, 32)
+                death_animation = Animation(0, 5, 1, 8, 16, .2, .2, ONESHOT, 32, 32)
+                enemy = Enemy(textures.zombie, x, y, 70, 120, 30, 
+                            animation, death_animation, room_width, room_height)
+                self.enemies.append(enemy)
+
+            elif entity['name'] == 'minion':
+                animation = Animation(0, 3, 1, 0, 16, 0.2, 0.2, REPEATING, 32, 32)
+                death_animation = Animation(0, 4, 1, 10, 16, .2, .2, ONESHOT, 32, 32)
+                enemy = Enemy(textures.minion, x, y, 20, 200, 8, 
+                            animation, death_animation, room_width, room_height)
+                self.enemies.append(enemy)
+
+            elif entity['name'] == 'mummy':
+                animation = Animation(0, 3, 1, 0, 16, 0.2, 0.2, REPEATING, 32, 32)
+                death_animation = Animation(0, 4, 1, 10, 16, .2, .2, ONESHOT, 32, 32)
+                enemy = Enemy(textures.mummy, x, y, 30, 135, 13, 
+                            animation, death_animation, room_width, room_height)
+                self.enemies.append(enemy)
+
+            elif entity['name'] == 'bat':
+                animation = Animation(0, 3, 1, 0, 16, 0.2, 0.2, REPEATING, 32, 32)
+                death_animation = Animation(0, 4, 1, 10, 16, .2, .2, ONESHOT, 32, 32)
+                enemy = Enemy(textures.bat, x, y, 40, 110, 20, 
+                            animation, death_animation, room_width, room_height)
+                self.enemies.append(enemy)
+                
+            elif entity['name'] == 'necro':
+                enemy = Necro(textures.necro, x, y, self)
+                self.enemies.append(enemy)
+                
+            elif entity['name'] == 'trader':
+                self.objects.append(NPC(x, y))
+                
+"""
     def gen_enemies(self, layer):
         room_width = COLS * SCALE
         room_height = (len(self.map['layers'][0]['data']) // COLS) * SCALE
@@ -127,52 +166,45 @@ class Room:
             x = entity['x'] * (SCALE / TILE_SIZE)
             y = entity['y'] * (SCALE / TILE_SIZE)
 
-            if entity['name'] == 'zombie':
-                idle = Animation(0, 3, 1, 0, 16, 0.2, 0.2, REPEATING, 32, 32)
-                death = Animation(0, 5, 1, 8, 16, 0.2, 0.2, ONESHOT, 32, 32)
-                animations = {"idle_front": idle, "death": death}
-                enemy = Enemy(textures.zombie, x, y, 70, 120, 30, animations, death, room_width, room_height, use_melee_attack=False)
-                self.enemies.append(enemy)
+            # === Build all animations (based on your sprite sheet structure) ===
+            # Orc sprite uses ~96px spacing between frames, despite 64x64 frame size
+            SPACING = 96
 
-            elif entity['name'] == 'minion':
-                idle = Animation(0, 3, 1, 0, 16, 0.2, 0.2, REPEATING, 32, 32)
-                death = Animation(0, 4, 1, 10, 16, 0.2, 0.2, ONESHOT, 32, 32)
-                animations = {"idle_front": idle, "death": death}
-                enemy = Enemy(textures.minion, x, y, 20, 200, 8, animations, death, room_width, room_height, use_melee_attack=False)
-                self.enemies.append(enemy)
+            ORC_OFFSET_DISTANCE = 96  # Frame size (64) + Padding (~32)
 
-            elif entity['name'] == 'mummy':
-                idle = Animation(0, 3, 1, 0, 16, 0.2, 0.2, REPEATING, 32, 32)
-                death = Animation(0, 4, 1, 10, 16, 0.2, 0.2, ONESHOT, 32, 32)
-                animations = {"idle_front": idle, "death": death}
-                enemy = Enemy(textures.mummy, x, y, 30, 135, 13, animations, death, room_width, room_height, use_melee_attack=False)
-                self.enemies.append(enemy)
+            orc_animations = {
+                "idle_front":    Animation(0, 4, 0, 0, ORC_OFFSET_DISTANCE, 0.2, 0.2, REPEATING, 64, 64),
+                "run_left":      Animation(0, 6, 1, 0, ORC_OFFSET_DISTANCE, 0.15, 0.15, REPEATING, 64, 64),
+                "run_right":     Animation(0, 6, 2, 0, ORC_OFFSET_DISTANCE, 0.15, 0.15, REPEATING, 64, 64),
+                "run_back":      Animation(0, 6, 3, 0, ORC_OFFSET_DISTANCE, 0.15, 0.15, REPEATING, 64, 64),
+                "run_front":     Animation(0, 6, 4, 0, ORC_OFFSET_DISTANCE, 0.15, 0.15, REPEATING, 64, 64),
+                "attack_left":   Animation(0, 5, 5, 0, ORC_OFFSET_DISTANCE, 0.1, 0.1, ONESHOT, 64, 64),
+                "attack_right":  Animation(0, 5, 6, 0, ORC_OFFSET_DISTANCE, 0.1, 0.1, ONESHOT, 64, 64),
+                "attack_back":   Animation(0, 5, 7, 0, ORC_OFFSET_DISTANCE, 0.1, 0.1, ONESHOT, 64, 64),
+                "attack_front":  Animation(0, 5, 8, 0, ORC_OFFSET_DISTANCE, 0.1, 0.1, ONESHOT, 64, 64),
+                "death":         Animation(0, 5, 9, 0, ORC_OFFSET_DISTANCE, 0.15, 0.15, ONESHOT, 64, 64),
+            }
 
-            elif entity['name'] == 'bat':
-                idle = Animation(0, 3, 1, 0, 16, 0.2, 0.2, REPEATING, 32, 32)
-                death = Animation(0, 4, 1, 10, 16, 0.2, 0.2, ONESHOT, 32, 32)
-                animations = {"idle_front": idle, "death": death}
-                enemy = Enemy(textures.bat, x, y, 40, 110, 20, animations, death, room_width, room_height, use_melee_attack=False)
-                self.enemies.append(enemy)
 
-                
-            elif entity['name'] == 'necro':
-                enemy = Necro(textures.necro, x, y, self)
-                self.enemies.append(enemy)
-                
-            elif entity['name'] == 'trader':
-                self.objects.append(NPC(x, y))
-"""
-    def gen_enemies(self, layer=None):
-        room_width = COLS * SCALE
-        room_height = (len(self.map['layers'][0]['data']) // COLS) * SCALE
 
-        # Example spawn positions
-        spawn_points = [(500, 300)]
-        for x, y in spawn_points:
-            orcBoss = Orc(textures.orc3, x, y, room_width, room_height)
-            orcBoss.health = orcBoss.maxHealth // 2
-            self.enemies.append(orcBoss)
+
+            orc = Enemy(
+                textures.orc1,   # ✅ Sprite sheet
+                x, y,
+                hp=100,
+                speed=100,
+                dmg=20,
+                animations=orc_animations,
+                death_animation=orc_animations["death"],  # ✅ Pass a *single* death animation
+                world_width=room_width,
+                world_height=room_height
+            )
+
+
+
+            self.enemies.append(orc)
+
+
 
     def get_tileset_name(self, gid):
         for tileset in self.map['tilesets']:
@@ -183,11 +215,5 @@ class Room:
 
             if first_gid <= gid < next_gid:
                 return (tileset['source'], gid-first_gid)
-        return None         
+        return None
 
-
-
-    # for testing orcs
-        """
-
-"""

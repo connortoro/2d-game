@@ -8,11 +8,11 @@ H = 900
 
 class NPC:
     def __init__(self, x, y):
-        sprite_width = 16 * 4
-        sprite_height = 16 * 4
+        sprite_width = 40 * 4
+        sprite_height = 40 * 4
         self.texture = textures.trader
         self.rect = Rectangle(x, y, sprite_width, sprite_height)
-        self.current_animation = Animation(0, 4, 0, 0, 16, 0.2, 0.2, REPEATING, 16, 16)
+        self.current_animation = Animation(0, 4, 0, 0, 40, 0.2, 0.2, REPEATING, 40, 40)
         self.interacted = False
         self.in_range = False
         self.dialog_options = {
@@ -68,7 +68,6 @@ class NPC:
                 return
             else:
                 player.speed += 40
-                player.displayed_speed += 10
                 player.gold -= 2
                 self.interacted = True
                 self.current_animation.animation_update()

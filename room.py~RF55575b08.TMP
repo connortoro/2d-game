@@ -40,9 +40,6 @@ class Room:
         self.enemies = []
         self.color = Color(255, 200, 200, 255)
 
-        self.world_width = COLS * SCALE
-        self.world_height = (len(self.map['layers'][0]['data']) // COLS) * SCALE
-
         self.gen()
 
     def update(self, player):
@@ -162,18 +159,6 @@ class Room:
                 
             elif entity['name'] == 'trader':
                 self.objects.append(NPC(x, y))
-"""
-    def gen_enemies(self, layer=None):
-        room_width = COLS * SCALE
-        room_height = (len(self.map['layers'][0]['data']) // COLS) * SCALE
-
-        # Example spawn positions
-        spawn_points = [(500, 300)]
-        for x, y in spawn_points:
-            orcBoss = Orc(textures.orc3, x, y, room_width, room_height)
-            orcBoss.health = orcBoss.maxHealth // 2
-            self.enemies.append(orcBoss)
-
     def get_tileset_name(self, gid):
         for tileset in self.map['tilesets']:
             first_gid = tileset['firstgid']
@@ -184,10 +169,19 @@ class Room:
             if first_gid <= gid < next_gid:
                 return (tileset['source'], gid-first_gid)
         return None         
+"""
+    def gen_enemies(self, layer=None):
+        room_width = COLS * SCALE
+        room_height = (len(self.map['layers'][0]['data']) // COLS) * SCALE
 
-
-
-    # for testing orcs
-        """
+        # Example spawn positions
+        spawn_points = [(500, 300)]
+        for x, y in spawn_points:
+            orcBoss = Orc(textures.orc1, x, y, room_width, room_height)
+            orcBoss.health = orcBoss.maxHealth // 2
+            self.enemies.append(orcBoss)
 
 """
+
+
+

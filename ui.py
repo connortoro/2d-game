@@ -6,18 +6,16 @@ class PlayerUI:
     mm_offset = (50, 100)
     mm_tile_size = 15
 
-    def __init__(self, player, sound_manager, config):
+    def __init__(self, player, music, config):
         self.player = player #player reference
-        self.sound_manager = sound_manager
+        self.music = music #game music
         self.config = config
-        self.game_volume = self.config["game_volume"]
         self.music_volume = self.config["music_volume"]
-
-        self.sound_manager.update_music_volume(self.music_volume)
-        self.sound_manager.update_game_volume(self.game_volume)
+        set_music_volume(self.music, self.music_volume)
         self.health_bar_texture = load_texture("assets/ui_textures/health_bar.png")
+        self.inventory_bar_texture = load_texture("assets/ui_textures/inventory_bar.png")
+        self.inv_selected_slot = None #currently selected slot
         self.background = load_texture("assets/textures/background.png")
-
     def draw(self, floor):
         self.draw_health_bar()
         self.draw_minimap(floor)
@@ -36,12 +34,6 @@ class PlayerUI:
         draw_texture_pro(textures.old_base, Rectangle(13*16, 0, 16, 16), Rectangle(x, y, 60, 60), Vector2(0, 0), 0, opac)
         draw_text(f"{self.player.gold}", x+60, y+21, 25, opac)
 
-        draw_texture_pro(textures.old_base, Rectangle(13*16, 4*16, 16, 16), Rectangle(x+6, y+60, 47, 47), Vector2(0, 0), 0.0, opac)
-        draw_text(f"{self.player.dmg}", x+60, y+71, 25, opac)
-        
-        draw_texture_pro(textures.speed_icon, Rectangle(13*32, 4*32, 32, 32), Rectangle(x+12, y+110, 32, 32), Vector2(0,0), 0.0, opac)
-        draw_text(f"{self.player.displayed_speed}", x+60, y+115, 25, opac)
-        
     def draw_minimap(self, floor):
         map = floor.map
         blk = Color(100, 100, 100, 160)
@@ -92,7 +84,35 @@ class PlayerUI:
             heart_src = Rectangle(32, 0, 16, 16)  #empty heart on sheet
             draw_texture_pro(self.health_bar_texture, heart_src, Rectangle(start_x + (full_hearts + half_hearts + i) * heart_spacing, start_y, 48, 48), Vector2(0, 0), 0, WHITE)
         
+    def draw_inventory_bar(self):
+        
+        #inventory bar details
+        slot_size = 16
+        slot_gap = 2
+        inv_width = 75
+        inv_height = 24
+        border_thickness = 4
+        scale = 3 #scale of inventory
+
+
+        scaled_width = inv_width * scale
+        scaled_height = inv_height * scale
     
+        inventory_x = (W - scaled_width) // 2 #center horizontally
+        inventory_y = H - scaled_height - 10 #slightly above the bottom of screen
+        #draw texture to screen
+        draw_texture_pro(self.inventory_bar_texture, 
+                         Rectangle(0, 0, self.inventory_bar_texture.width, self.inventory_bar_texture.height), 
+                         Rectangle(inventory_x, inventory_y, scaled_width, scaled_height), Vector2(0, 0), 0, WHITE)
+
+        #logic to detect which slot player is hovering over
+        if self.inv_selected_slot is not None:
+            selected_slot_x = inventory_x + (self.inv_selected_slot * (slot_size + slot_gap) + border_thickness) * scale
+            selected_slot_y = inventory_y + border_thickness * scale
+
+            
+            draw_rectangle_lines(selected_slot_x, selected_slot_y, slot_size * scale, slot_size * scale, RED)
+
     def draw_main_menu(self):
 
         draw_texture(self.background, 0, 0, WHITE)
@@ -226,14 +246,14 @@ class PlayerUI:
         music_width = measure_text(music_text, 20)
         draw_text(music_text, center_x - music_width // 2, center_y - 60, 20, WHITE)
         
-        #volume slider
+        #slider
         slider_width = 200
         slider_height = 10
         slider_x = center_x - slider_width // 2
-        slider_y = center_y - 80
+        slider_y = center_y - 30
         draw_rectangle(slider_x, slider_y, slider_width, slider_height, GRAY)
 
-        #music volume slider handle
+        #slider handle
         handle_width = 10
         handle_x = slider_x + int(self.music_volume * slider_width) - handle_width // 2
         draw_rectangle(handle_x, slider_y - 5, handle_width, slider_height + 10, DARKGRAY)
@@ -245,34 +265,16 @@ class PlayerUI:
                 self.music_volume = clamp(new_volume, 0.0, 1.0)
                 self.config["music_volume"] = self.music_volume
                 save_config(self.config)
-                self.sound_manager.update_music_volume(self.music_volume)
+                set_music_volume(self.music, self.music_volume)
 
-        game_text = "Game Volume:"
-        game_width = measure_text(game_text, 20)
-        draw_text(game_text, center_x - game_width // 2, center_y + 20, 20, WHITE)
-
-        slider_y_game = slider_y + 80 
-        draw_rectangle(slider_x, slider_y_game, slider_width, slider_height, GRAY)
-
-        handle_x_game = slider_x + int(self.game_volume * slider_width) - handle_width // 2
-        draw_rectangle(handle_x_game, slider_y_game - 5, handle_width, slider_height + 10, DARKGRAY)
-
-        if is_mouse_button_down(MOUSE_LEFT_BUTTON):
-            mouse_x, mouse_y = get_mouse_position()
-            if (slider_x <= mouse_x <= slider_x + slider_width) and (slider_y_game - 5 <= mouse_y <= slider_y_game + slider_height + 5):
-                new_game_volume = (mouse_x - slider_x) / slider_width
-                self.game_volume = clamp(new_game_volume, 0.0, 1.0)
-                self.config["game_volume"] = self.game_volume
-                save_config(self.config)
-                self.sound_manager.update_game_volume(self.game_volume)
-
+        
         mouse_pos = get_mouse_position()
 
         #back button
         button_width = 200
         button_height = 50
         button_x = center_x - button_width // 2
-        button_y = slider_y_game + 60 #below all sliders
+        button_y = slider_y + 60 #below slider
 
         back_button_rect = Rectangle(button_x, button_y, button_width, button_height)
         back_hovered = check_collision_point_rec(mouse_pos, back_button_rect)
@@ -303,10 +305,9 @@ class PlayerUI:
 
 
     def update(self):
-        self.game_volume = self.config["game_volume"]
+        self.inventory_key_input()
         self.music_volume = self.config["music_volume"]
-        self.sound_manager.update_game_volume(self.game_volume)
-        self.sound_manager.update_music_volume(self.music_volume)
+        set_music_volume(self.music, self.music_volume)
 
     def unload(self):
         unload_texture(self.health_bar_texture)

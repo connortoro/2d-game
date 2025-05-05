@@ -11,7 +11,7 @@ class Enemy:
     H = 32
     SCALE = 4
 
-    def __init__(self, sheet, x, y, hp, speed, dmg, animations, death_animation, world_width, world_height, attack_range=125, attack_width=150, show_radius=True, use_melee_attack=True):
+    def __init__(self, sheet, x, y, hp, speed, dmg, animations, death_animation, world_width, world_height, attack_range=150, attack_width=150, show_radius=True, use_melee_attack=True):
         self.sheet = sheet
         self.vel = Vector2(0.0, 0.0)
         self.dmg = dmg
@@ -27,8 +27,6 @@ class Enemy:
         self.sprite_offset_x = 0
         self.sprite_offset_y = 0
         self.last_reachable_pos = None
-        self.los_chase_grace = 0.3
-        self.los_chase_timer = 0.0
 
         self.use_melee_attack = use_melee_attack
         self.is_attacking = False
@@ -97,67 +95,48 @@ class Enemy:
         to_player = vector2_subtract(tgt, src)
         dist_to_player = vector2_length(to_player)
 
-        # Determine facing direction
-        if abs(to_player.x) > abs(to_player.y):
-            self.facing = "right" if to_player.x > 0 else "left"
+        if abs(self.vel.x) > abs(self.vel.y):
+            self.facing = "right" if self.vel.x > 0 else "left"
         else:
-            self.facing = "down" if to_player.y > 0 else "up"
+            self.facing = "down" if self.vel.y > 0 else "up"
 
-        # If within detection radius
         if dist_to_player <= self.detection_radius:
-            # Check LOS and update LOS grace timer
             if self.has_line_of_sight(player, obstacles):
-                self.los_chase_timer = self.los_chase_grace
-            else:
-                self.los_chase_timer -= get_frame_time()
-
-            # === DIRECT CHASE ===
-            if self.los_chase_timer > 0:
+                # Clear path and move directly
                 self.path = []
                 dir_vec = vector2_normalize(to_player)
                 self.vel = Vector2(dir_vec.x * self.speed, dir_vec.y * self.speed)
-                self.last_reachable_pos = None
-                return
-
-            # === PATHFINDING ===
-            self.path_update_cooldown -= get_frame_time()
-            if self.path_update_cooldown <= 0 or not self.path:
-                self.path_update_cooldown = self.path_update_interval
-                self.update_grid(obstacles)
+            else:
+                # Use A* if no LOS
+                self.path_update_cooldown -= get_frame_time()
+                if self.path_update_cooldown <= 0 or not self.path:
+                    self.path_update_cooldown = self.path_update_interval
+                    self.update_grid(obstacles)
                 new_path = self.pathfinder.find_path(src, tgt)
                 if new_path:
                     self.path = new_path
                     self.current_waypoint = 0
                     self.last_reachable_pos = new_path[-1]
-                else:
-                    # Try using previous player position as fallback if desired
-                    self.last_reachable_pos = tgt  
-
-            if self.path and self.current_waypoint < len(self.path):
-                target_pos = self.path[self.current_waypoint]
-                to_target = vector2_subtract(target_pos, src)
-                if vector2_length(to_target) < 10:
-                    self.current_waypoint += 1
-                else:
-                    dir_vec = vector2_normalize(to_target)
-                    self.vel = Vector2(dir_vec.x * self.speed, dir_vec.y * self.speed)
-            elif self.last_reachable_pos:
-                # Move toward last known reachable point
-                to_last = vector2_subtract(self.last_reachable_pos, src)
-                if vector2_length(to_last) > 5:
+                elif self.last_reachable_pos:
+                    to_last = vector2_subtract(self.last_reachable_pos, src)
                     dir_vec = vector2_normalize(to_last)
                     self.vel = Vector2(dir_vec.x * self.speed, dir_vec.y * self.speed)
+                    return
+
+
+                if self.path and self.current_waypoint < len(self.path):
+                    target_pos = self.path[self.current_waypoint]
+                    to_target = vector2_subtract(target_pos, src)
+                    if vector2_length(to_target) < 10:
+                        self.current_waypoint += 1
+                    else:
+                        dir_vec = vector2_normalize(to_target)
+                        self.vel = Vector2(dir_vec.x * self.speed, dir_vec.y * self.speed)
                 else:
                     self.vel = Vector2(0.0, 0.0)
-            else:
-                # Still no path or fallback
-                self.vel = Vector2(0.0, 0.0)
-
         else:
-            # Outside detection radius
             self.vel = Vector2(0.0, 0.0)
             self.path = []
-            self.los_chase_timer = 0
 
     def update_position(self):
         self.rect.x += self.vel.x * get_frame_time()
@@ -172,14 +151,7 @@ class Enemy:
         if not self.is_alive:
             desired = safe_get("death")
         elif self.is_attacking:
-            facing_map = {
-                "up": "back",
-                "down": "front",
-                "left": "left",
-                "right": "right"
-            }
-            mapped = facing_map.get(self.facing, "front")
-            desired = safe_get(f"attack_" + mapped)
+            desired = safe_get(f"attack_{self.facing}")
         elif self.vel.x != 0 or self.vel.y != 0:
             desired = safe_get(f"run_{self.facing}")
         else:

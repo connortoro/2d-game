@@ -1,11 +1,7 @@
-from raylibpy import Vector2, Rectangle, check_collision_point_rec, vector2_subtract, vector2_length, vector2_normalize
+from raylibpy import Vector2, check_collision_point_rec, vector2_subtract, vector2_length, vector2_normalize
 from raylibpy import Rectangle
 import heapq
 from typing import List, Tuple, Optional
-
-
-def vector2_scale(vec: Vector2, scalar: float) -> Vector2:
-    return Vector2(vec.x * scalar, vec.y * scalar)
 
 def center_of_rect(rect: Rectangle):
     cx = rect.x + (rect.width/2.0)
@@ -73,11 +69,9 @@ def create_pathfinding_grid(obstacles: List[Rectangle],
         end_x = min(grid_width - 1, int((obstacle.x + obstacle.width) / cell_size))
         end_y = min(grid_height - 1, int((obstacle.y + obstacle.height) / cell_size))
         
-        buffer = 1  # Number of cells to pad around obstacle
-        for y in range(max(0, start_y - buffer), min(grid_height, end_y + 1 + buffer)):
-            for x in range(max(0, start_x - buffer), min(grid_width, end_x + 1 + buffer)):
+        for y in range(start_y, end_y + 1):
+            for x in range(start_x, end_x + 1):
                 grid[y][x] = 0
-
                 
     return grid
 

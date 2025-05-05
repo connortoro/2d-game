@@ -12,15 +12,13 @@ class Necro:
     H = 200
     SCALE = 4
 
-    def __init__(self, sheet, x, y, room, sound_manager):
-        self.sound_manager = sound_manager
+    def __init__(self, sheet, x, y, room):
         self.room = room
         self.sheet = sheet
         self.vel = Vector2(0.0, 0.0)
         self.dmg = 40
         self.speed = 200
         self.rect = Rectangle(x, y, self.W * self.SCALE, self.H * self.SCALE)
-        self.door = None
 
         self.idle_animation = Animation(0, 7, 0, 0, 128, 0.2, 0.2, REPEATING, 160, 160)
         self.death_animation = Animation(0, 10, 0, 6, 128, 0.15, 0.15, ONESHOT, 160, 160)
@@ -62,9 +60,6 @@ class Necro:
         self.knockback_direction = None
 
     def update(self, player, rects, room):
-        if self.door:
-            if check_collision_recs(self.door, player.hitbox):
-                self.room.floor.next_floor()
         if self.health <= 0:
             self.knockback_timer = 0
             self.state = 'death'
@@ -100,8 +95,6 @@ class Necro:
       self.hitbox.y = 80+self.rect.y + (self.rect.height - self.hitbox.height) / 2
 
     def draw(self):
-        if self.door:
-            draw_texture_pro(textures.old_base, Rectangle(3*16, 2*16, 16, 16), self.door, Vector2(0, 0), 0.0, WHITE)
         if self.state != 'death':
             self.draw_health_bar()
         source = self.anim_map[self.state].animation_frame_horizontal()
@@ -130,7 +123,6 @@ class Necro:
             self.speed *= 1.2
 
         if self.health <= 0:
-            self.door = Rectangle(700, 400, 100, 100)
             self.hitbox = Rectangle(0, 0, 0, 0)
             self.projectiles = []
 
@@ -174,8 +166,17 @@ class Necro:
                     self.projectiles.append(Projectile(c.x, c.y, 15, dir))
         elif roll == 2:
             #necromance
-            self.room.enemies.append(Enemy(textures.minion, 100, 100, 30, 140, 10, Animation(0, 3, 1, 0, 16, 0.2, 0.2, REPEATING, 32, 32), Animation(0, 4, 1, 10, 16, .2, .2, ONESHOT, 32, 32), self.sound_manager))
-            self.room.enemies.append(Enemy(textures.minion, 1200, 650, 30, 140, 10, Animation(0, 3, 1, 0, 16, 0.2, 0.2, REPEATING, 32, 32), Animation(0, 4, 1, 10, 16, .2, .2, ONESHOT, 32, 32), self.sound_manager))
+            self.room.enemies.append(Enemy(textures.minion, 100, 100, 30, 140, 10,
+                Animation(0, 3, 1, 0, 16, 0.2, 0.2, REPEATING, 32, 32),
+                Animation(0, 4, 1, 10, 16, .2, .2, ONESHOT, 32, 32),
+                self.room.world_width,
+                self.room.world_height))
+
+            self.room.enemies.append(Enemy(textures.minion, 1200, 650, 30, 140, 10,
+                Animation(0, 3, 1, 0, 16, 0.2, 0.2, REPEATING, 32, 32),
+                Animation(0, 4, 1, 10, 16, .2, .2, ONESHOT, 32, 32),
+                self.room.world_width,
+                self.room.world_height))
         elif roll == 3:
             #shotgun
             dir = direction_between_rects(Rectangle(c.x, c.y, 1, 1), player.hitbox)
