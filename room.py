@@ -4,6 +4,9 @@ from animation import Animation, REPEATING, ONESHOT
 from necro import Necro
 from demon import Demon
 from npc import NPC
+from orc import Orc
+from orc_dasher import OrcDasher
+from orc_boss import OrcBoss
 import random
 import textures
 import json
@@ -99,7 +102,8 @@ class Room:
             draw_texture_pro(textures.base, source_rect, dest_rect, Vector2(0,0), 0, self.color)
 
     def gen(self):
-        self.gen_enemies(self.map['layers'])
+        self.gen_enemies(self.map['layers']) # main enemy spawn
+        #self.gen_test_enemy() # testing purposes 
         self.gen_rectangles(self.map['layers'])
         self.gen_spikes(self.map['layers'])
         self.gen_doors()
@@ -133,6 +137,9 @@ class Room:
             self.doors.append(Rectangle((x*SCALE)-4 , (y*SCALE)-4 , SCALE+8, SCALE+8))
 
     def gen_enemies(self, layers):
+        room_width = COLS * SCALE
+        room_height = (len(self.map['layers'][0]['data']) // COLS) * SCALE
+
         for layer in layers:
             if layer['name'] == 'enemies':
                 for entity in layer['objects']:
@@ -140,38 +147,53 @@ class Room:
                     y = entity['y'] * (SCALE / TILE_SIZE)
 
                     if entity['name'] == 'zombie':
-                        animation = Animation(0, 3, 1, 0, 16, 0.2, 0.2, REPEATING, 32, 32)
-                        death_animation = Animation(0, 5, 1, 8, 16, .2, .2, ONESHOT, 32, 32)
-                        enemy = Enemy(textures.zombie, x , y , 70, 120, 30, animation, death_animation, self.sound_manager)
+                        idle = Animation(0, 3, 1, 0, 16, 0.2, 0.2, REPEATING, 32, 32)
+                        death = Animation(0, 5, 1, 8, 16, 0.2, 0.2, ONESHOT, 32, 32)
+                        animations = {"idle_front": idle, "death": death}
+                        enemy = Enemy(textures.zombie, x, y, 70, 120, 30, animations, death, room_width, room_height, self.sound_manager, use_melee_attack=False)
                         self.enemies.append(enemy)
 
                     elif entity['name'] == 'minion':
-                        animation = Animation(0, 3, 1, 0, 16, 0.2, 0.2, REPEATING, 32, 32)
-                        death_animation = Animation(0, 4, 1, 10, 16, .2, .2, ONESHOT, 32, 32)
-                        enemy = Enemy(textures.minion, x , y , 20, 200, 8, animation, death_animation, self.sound_manager)
+                        idle = Animation(0, 3, 1, 0, 16, 0.2, 0.2, REPEATING, 32, 32)
+                        death = Animation(0, 4, 1, 10, 16, 0.2, 0.2, ONESHOT, 32, 32)
+                        animations = {"idle_front": idle, "death": death}
+                        enemy = Enemy(textures.minion, x, y, 20, 200, 8, animations, death, room_width, room_height, self.sound_manager, use_melee_attack=False)
                         self.enemies.append(enemy)
 
                     elif entity['name'] == 'mummy':
-                        animation = Animation(0, 3, 1, 0, 16, 0.2, 0.2, REPEATING, 32, 32)
-                        death_animation = Animation(0, 4, 1, 10, 16, .2, .2, ONESHOT, 32, 32)
-                        enemy = Enemy(textures.mummy, x, y, 30, 135, 13, animation, death_animation, self.sound_manager)
+                        idle = Animation(0, 3, 1, 0, 16, 0.2, 0.2, REPEATING, 32, 32)
+                        death = Animation(0, 4, 1, 10, 16, 0.2, 0.2, ONESHOT, 32, 32)
+                        animations = {"idle_front": idle, "death": death}
+                        enemy = Enemy(textures.mummy, x, y, 30, 135, 13, animations, death, room_width, room_height, self.sound_manager, use_melee_attack=False)
                         self.enemies.append(enemy)
 
                     elif entity['name'] == 'bat':
-                        animation = Animation(0, 3, 1, 0, 16, 0.2, 0.2, REPEATING, 32, 32)
-                        death_animation = Animation(0, 4, 1, 10, 16, .2, .2, ONESHOT, 32, 32)
-                        enemy = Enemy(textures.bat, x , y , 40, 110, 20, animation, death_animation, self.sound_manager)
+                        idle = Animation(0, 3, 1, 0, 16, 0.2, 0.2, REPEATING, 32, 32)
+                        death = Animation(0, 4, 1, 10, 16, 0.2, 0.2, ONESHOT, 32, 32)
+                        animations = {"idle_front": idle, "death": death}
+                        enemy = Enemy(textures.bat, x, y, 40, 110, 20, animations, death, room_width, room_height, self.sound_manager, use_melee_attack=False)
+                        self.enemies.append(enemy)
+                    elif entity['name'] == 'orc':
+                        enemy = Orc(textures.orc1, x, y, room_width, room_height)
+                        self.enemies.append(enemy)
+
+                    elif entity['name'] == 'orc_dasher':
+                        enemy = OrcDasher(textures.orc2, x, y, room_width, room_height)
                         self.enemies.append(enemy)
 
                     elif entity['name'] == 'boss':
-                        if random.random() < 0.5:
-                            enemy = Necro(textures.necro, x, y, self, self.sound_manager)
+                        r = random.random()
+                        if r < 1/3:
+                            enemy = Demon(textures.demon, x, y, self, self.sound_manager)
+                        elif r < 2/3:
+                            enemy = OrcBoss(textures.orc3, x, y, room_width, room_height)
                         else:
-                            enemy = Demon(textures.demon, x, y, self)
+                            enemy = Necro(textures.necro, x, y, self, self.sound_manager)
                         self.enemies.append(enemy)
 
+
                     elif entity['name'] == 'trader':
-                        self.objects.append(NPC(x, y))
+                        self.objects.append(NPC(x - 50, y + -100))
 
     def get_tileset_name(self, gid):
         for tileset in self.map['tilesets']:
@@ -184,3 +206,39 @@ class Room:
                 return (tileset['source'], gid-first_gid)
         return None
 
+    def gen_test_enemy(self):
+        room_width = COLS * SCALE
+        room_height = (len(self.map['layers'][0]['data']) // COLS) * SCALE
+
+        # Choose a fixed location to spawn
+        x = 500
+        y = 300
+
+        # === Swap any of these blocks to test different enemies ===
+
+        # --- Test zombie ---
+        #idle = Animation(0, 3, 1, 0, 16, 0.2, 0.2, REPEATING, 32, 32)
+        #death = Animation(0, 5, 1, 8, 16, 0.2, 0.2, ONESHOT, 32, 32)
+        #animations = {"idle_front": idle, "death": death}
+        #enemy = Enemy(textures.zombie, x, y, 70, 120, 30, animations, death, room_width, room_height, self.sound_manager)
+        #self.enemies.append(enemy)
+
+        # --- Test Demon ---
+        #enemy = Demon(textures.demon, x, y, self, self.sound_manager)
+        #self.enemies.append(enemy)
+
+        # # --- Test Necro ---
+        # necro = Necro(textures.necro, x, y, self, self.sound_manager)
+        # self.enemies.append(necro)
+
+        # # --- Test Minion ---
+        # idle = Animation(0, 3, 1, 0, 16, 0.2, 0.2, REPEATING, 32, 32)
+        # death = Animation(0, 4, 1, 10, 16, 0.2, 0.2, ONESHOT, 32, 32)
+        # animations = {"idle_front": idle, "death": death}
+        # minion = Enemy(textures.minion, x, y, 20, 200, 8, animations, death, room_width, room_height, self.sound_manager)
+        # self.enemies.append(minion)
+
+        # --- Test OrcBoss ---
+        # orc_boss = OrcBoss(textures.orc3, x, y, room_width, room_height)
+        # orc_boss.health = orc_boss.maxHealth // 2
+        # self.enemies.append(orc_boss)

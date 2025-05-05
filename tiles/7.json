@@ -50,7 +50,7 @@
                 {
                  "height":0,
                  "id":1,
-                 "name":"zombie",
+                 "name":"orc",
                  "point":true,
                  "rotation":0,
                  "type":"",
@@ -62,7 +62,7 @@
                 {
                  "height":0,
                  "id":2,
-                 "name":"zombie",
+                 "name":"orc",
                  "point":true,
                  "rotation":0,
                  "type":"",

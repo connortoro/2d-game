@@ -41,54 +41,55 @@
          "width":15,
          "x":0,
          "y":0
-        }, 
-        {
-         "draworder":"topdown",
-         "id":3,
-         "name":"enemies",
-         "objects":[
-                {
-                 "height":0,
-                 "id":1,
-                 "name":"mummy",
-                 "point":true,
-                 "rotation":0,
-                 "type":"",
-                 "visible":true,
-                 "width":0,
-                 "x":119.666666666667,
-                 "y":71
-                }, 
-                {
-                 "height":0,
-                 "id":2,
-                 "name":"mummy",
-                 "point":true,
-                 "rotation":0,
-                 "type":"",
-                 "visible":true,
-                 "width":0,
-                 "x":25,
-                 "y":119.333333333333
-                }, 
-                {
-                 "height":0,
-                 "id":3,
-                 "name":"mummy",
-                 "point":true,
-                 "rotation":0,
-                 "type":"",
-                 "visible":true,
-                 "width":0,
-                 "x":216.666666666667,
-                 "y":119
-                }],
-         "opacity":1,
-         "type":"objectgroup",
-         "visible":true,
-         "x":0,
-         "y":0
-        }],
+        },
+    {
+        "draworder": "topdown",
+        "id": 3,
+        "name": "enemies",
+        "objects": [
+            {
+                "height": 0,
+                "id": 1,
+                "name": "orc",
+                "point": true,
+                "rotation": 0,
+                "type": "",
+                "visible": true,
+                "width": 0,
+                "x": 119.666666666667,
+                "y": 71
+            },
+            {
+                "height": 0,
+                "id": 2,
+                "name": "orc",
+                "point": true,
+                "rotation": 0,
+                "type": "",
+                "visible": true,
+                "width": 0,
+                "x": 25,
+                "y": 119.333333333333
+            },
+            {
+                "height": 0,
+                "id": 3,
+                "name": "orc_dasher",
+                "point": true,
+                "rotation": 0,
+                "type": "",
+                "visible": true,
+                "width": 0,
+                "x": 216.666666666667,
+                "y": 119
+            }
+        ],
+        "opacity": 1,
+        "type": "objectgroup",
+        "visible": true,
+        "x": 0,
+        "y": 0
+    }],
  "nextlayerid":4,
  "nextobjectid":4,
  "orientation":"orthogonal",
