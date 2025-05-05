@@ -1,15 +1,19 @@
 from raylibpy import *
 from animation import Animation, REPEATING, ONESHOT
 from enum import Enum
+from sounds import SoundManager
+from config import *
 
 class heartState(Enum):
     IDLE = "IDLE"
     PICKUP = "PICKUP"
 
 class Heart:
-    def __init__(self, x, y):
+    def __init__(self, x, y, sound_manager):
+        self.config = load_config()
+        self.sound_manager = sound_manager
         self.rect = Rectangle(x-25, y-25, 50, 50)
-        self.pickup_sound = load_sound("assets/audio/bubble-pop-2-293341.wav")
+        self.pickup_sound = self.sound_manager.sounds["heart"]
         self.animations = {
             heartState.IDLE: Animation(0, 5, 0, 0, 16, 0.1, 0.1, REPEATING, 16, 16),
             heartState.PICKUP: Animation(0, 5, 0, 1, 16, 0.1, 0.1, ONESHOT, 16, 16)
@@ -25,7 +29,7 @@ class Heart:
             self.state = heartState.PICKUP
             self.current_animation = self.animations[self.state]
             if not self.pickup_played:
-                play_sound(self.pickup_sound)
+                self.sound_manager.play_sound("heart")
                 player.heal(10)
                 self.pickup_played = True
         if self.state == heartState.PICKUP and self.current_animation.is_complete():

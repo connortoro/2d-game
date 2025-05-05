@@ -1,14 +1,13 @@
-﻿from raylibpy import *
+from raylibpy import *
 from enemy import Enemy
 from animation import Animation, REPEATING, ONESHOT
 from necro import Necro
+from demon import Demon
 from npc import NPC
-from orc_boss import OrcBoss
+import random
 import textures
 import json
 from config import *
-from orc import Orc
-from orc_dasher import OrcDasher
 
 class Room:
 
@@ -28,20 +27,19 @@ class Room:
 
     # Initializes floor texture and empty grid once
 
-    def __init__(self, map, door_string):
+    def __init__(self, map, door_string, floor, color, sound_manager):
+        self.sound_manager = sound_manager
         with open(map, 'r') as file:
             self.map = json.load(file)
         self.door_string = door_string
 
+        self.floor = floor
         self.doors = []
         self.rectangles = []
         self.spikes = []
         self.objects = []
         self.enemies = []
-        self.color = Color(255, 200, 200, 255)
-
-        self.world_width = COLS * SCALE
-        self.world_height = (len(self.map['layers'][0]['data']) // COLS) * SCALE
+        self.color = color
 
         self.gen()
 
@@ -101,78 +99,79 @@ class Room:
             draw_texture_pro(textures.base, source_rect, dest_rect, Vector2(0,0), 0, self.color)
 
     def gen(self):
-        self.gen_enemies(self.map['layers'][2])
-        self.gen_rectangles(self.map['layers'][1])
+        self.gen_enemies(self.map['layers'])
+        self.gen_rectangles(self.map['layers'])
+        self.gen_spikes(self.map['layers'])
         self.gen_doors()
+        
 
-    def gen_rectangles(self, layer):
-        for i, gid in enumerate(layer['data']):
-            if gid == 0:
-                continue
-            else:
-                x = (i % COLS) * SCALE
-                y = (i // COLS) * SCALE
-                self.rectangles.append(Rectangle(x, y, SCALE, SCALE))
+    def gen_spikes(self, layers):
+        for layer in layers:
+            if layer['name'] == 'spikes':
+                for i, gid in enumerate(layer['data']):
+                    if gid == 0:
+                        continue
+                    else:
+                        x = (i % COLS) * SCALE
+                        y = (i // COLS) * SCALE
+                        self.spikes.append(Rectangle(x, y, SCALE, SCALE))
+
+    def gen_rectangles(self, layers):
+        for layer in layers:
+            if layer['name'] == 'obstacles':
+                for i, gid in enumerate(layer['data']):
+                    if gid == 0:
+                        continue
+                    else:
+                        x = (i % COLS) * SCALE
+                        y = (i // COLS) * SCALE
+                        self.rectangles.append(Rectangle(x, y, SCALE, SCALE))
 
     def gen_doors(self):
         for dir in self.door_string:
             x, y = self.door_dest[dir]
             self.doors.append(Rectangle((x*SCALE)-4 , (y*SCALE)-4 , SCALE+8, SCALE+8))
 
-    def gen_enemies(self, layer):
-        room_width = COLS * SCALE
-        room_height = (len(self.map['layers'][0]['data']) // COLS) * SCALE
+    def gen_enemies(self, layers):
+        for layer in layers:
+            if layer['name'] == 'enemies':
+                for entity in layer['objects']:
+                    x = entity['x'] * (SCALE / TILE_SIZE)
+                    y = entity['y'] * (SCALE / TILE_SIZE)
 
-        for entity in layer['objects']:
-            x = entity['x'] * (SCALE / TILE_SIZE)
-            y = entity['y'] * (SCALE / TILE_SIZE)
+                    if entity['name'] == 'zombie':
+                        animation = Animation(0, 3, 1, 0, 16, 0.2, 0.2, REPEATING, 32, 32)
+                        death_animation = Animation(0, 5, 1, 8, 16, .2, .2, ONESHOT, 32, 32)
+                        enemy = Enemy(textures.zombie, x , y , 70, 120, 30, animation, death_animation, self.sound_manager)
+                        self.enemies.append(enemy)
 
-            if entity['name'] == 'zombie':
-                idle = Animation(0, 3, 1, 0, 16, 0.2, 0.2, REPEATING, 32, 32)
-                death = Animation(0, 5, 1, 8, 16, 0.2, 0.2, ONESHOT, 32, 32)
-                animations = {"idle_front": idle, "death": death}
-                enemy = Enemy(textures.zombie, x, y, 70, 120, 30, animations, death, room_width, room_height, use_melee_attack=False)
-                self.enemies.append(enemy)
+                    elif entity['name'] == 'minion':
+                        animation = Animation(0, 3, 1, 0, 16, 0.2, 0.2, REPEATING, 32, 32)
+                        death_animation = Animation(0, 4, 1, 10, 16, .2, .2, ONESHOT, 32, 32)
+                        enemy = Enemy(textures.minion, x , y , 20, 200, 8, animation, death_animation, self.sound_manager)
+                        self.enemies.append(enemy)
 
-            elif entity['name'] == 'minion':
-                idle = Animation(0, 3, 1, 0, 16, 0.2, 0.2, REPEATING, 32, 32)
-                death = Animation(0, 4, 1, 10, 16, 0.2, 0.2, ONESHOT, 32, 32)
-                animations = {"idle_front": idle, "death": death}
-                enemy = Enemy(textures.minion, x, y, 20, 200, 8, animations, death, room_width, room_height, use_melee_attack=False)
-                self.enemies.append(enemy)
+                    elif entity['name'] == 'mummy':
+                        animation = Animation(0, 3, 1, 0, 16, 0.2, 0.2, REPEATING, 32, 32)
+                        death_animation = Animation(0, 4, 1, 10, 16, .2, .2, ONESHOT, 32, 32)
+                        enemy = Enemy(textures.mummy, x, y, 30, 135, 13, animation, death_animation, self.sound_manager)
+                        self.enemies.append(enemy)
 
-            elif entity['name'] == 'mummy':
-                idle = Animation(0, 3, 1, 0, 16, 0.2, 0.2, REPEATING, 32, 32)
-                death = Animation(0, 4, 1, 10, 16, 0.2, 0.2, ONESHOT, 32, 32)
-                animations = {"idle_front": idle, "death": death}
-                enemy = Enemy(textures.mummy, x, y, 30, 135, 13, animations, death, room_width, room_height, use_melee_attack=False)
-                self.enemies.append(enemy)
+                    elif entity['name'] == 'bat':
+                        animation = Animation(0, 3, 1, 0, 16, 0.2, 0.2, REPEATING, 32, 32)
+                        death_animation = Animation(0, 4, 1, 10, 16, .2, .2, ONESHOT, 32, 32)
+                        enemy = Enemy(textures.bat, x , y , 40, 110, 20, animation, death_animation, self.sound_manager)
+                        self.enemies.append(enemy)
 
-            elif entity['name'] == 'bat':
-                idle = Animation(0, 3, 1, 0, 16, 0.2, 0.2, REPEATING, 32, 32)
-                death = Animation(0, 4, 1, 10, 16, 0.2, 0.2, ONESHOT, 32, 32)
-                animations = {"idle_front": idle, "death": death}
-                enemy = Enemy(textures.bat, x, y, 40, 110, 20, animations, death, room_width, room_height, use_melee_attack=False)
-                self.enemies.append(enemy)
+                    elif entity['name'] == 'boss':
+                        if random.random() < 0.5:
+                            enemy = Necro(textures.necro, x, y, self, self.sound_manager)
+                        else:
+                            enemy = Demon(textures.demon, x, y, self)
+                        self.enemies.append(enemy)
 
-                
-            elif entity['name'] == 'necro':
-                enemy = Necro(textures.necro, x, y, self)
-                self.enemies.append(enemy)
-                
-            elif entity['name'] == 'trader':
-                self.objects.append(NPC(x, y))
-"""
-    def gen_enemies(self, layer=None):
-        room_width = COLS * SCALE
-        room_height = (len(self.map['layers'][0]['data']) // COLS) * SCALE
-
-        # Example spawn positions
-        spawn_points = [(500, 300)]
-        for x, y in spawn_points:
-            orcBoss = Orc(textures.orc3, x, y, room_width, room_height)
-            orcBoss.health = orcBoss.maxHealth // 2
-            self.enemies.append(orcBoss)
+                    elif entity['name'] == 'trader':
+                        self.objects.append(NPC(x, y))
 
     def get_tileset_name(self, gid):
         for tileset in self.map['tilesets']:
@@ -183,11 +182,5 @@ class Room:
 
             if first_gid <= gid < next_gid:
                 return (tileset['source'], gid-first_gid)
-        return None         
+        return None
 
-
-
-    # for testing orcs
-        """
-
-"""

@@ -1,6 +1,7 @@
 from raylibpy import *
 from enum import Enum
 from animation import Animation, REPEATING, ONESHOT
+from sounds import SoundManager
 from room import Room  # Import the Room class
 import time
 from collisions import *
@@ -42,8 +43,10 @@ class playerState(Enum):
     ATTACK_LEFT = "ATTACK_LEFT"
 
 class Player:
-    def __init__(self, texture):
+    def __init__(self, texture, sound_manager):
         """================================= BASICS ================================="""
+        self.config = load_config()
+        self.sound_manager = sound_manager
         sprite_width = 64.0 * 4
         sprite_height = 64.0 * 4
         self.rect = Rectangle(W / 2.0 - sprite_width / 2.0 , H / 2.0 - sprite_height / 2.0, sprite_width, sprite_height)
@@ -51,8 +54,8 @@ class Player:
         self.sprite = texture
         self.dir = RIGHT  # right
         self.death = load_texture("assets/player_sheet/player_spritesheet.png")
-
         feet_width = 10.0 * 4
+
         feet_width = 10.0 * 4
         feet_height = 8.0 * 6  # Make collision box shorter, just for feet
         self.hitbox_offset = 50
@@ -91,13 +94,15 @@ class Player:
         self.is_hurt = False
         self.hurt_duration = 0.4
         """================================= PLAYER STATS ================================="""
-        self.health = 150
-        self.max_health = 150
+        self.health = 100
+        self.max_health = 100
+        self.absolute_health = 160
         self.inventory = []
         self.position = (0, 0)
         self.score = 0
-        self.gold = 0
+        self.gold = 1000
         self.speed = 300
+        self.displayed_speed = 100
         """================================= DAMAGE EFFECTS ================================="""
         self.damage_timer = 0
         self.highlight_duration = 0.7  # duration of red highlight over player
@@ -106,25 +111,20 @@ class Player:
         self.knockback_duration = 0.3
         self.knockback_direction = None
         """================================= ATTACK MECHANIC ================================="""
-        self.dmg = 10
+        self.dmg = 100
         self.attack_timer = 0
         self.attack_cooldown = 0.6
         self.attack_range = 120  # Range of the attack
         self.attack_angle = 90  # Angle of the attack arc (in degrees)
 
         """===================================== SOUNDS ======================================"""
-        self.attack = load_sound("assets/audio/sword-sound-260274.wav")
-        # set_sound_pitch(self.attack, .7)
-        # set_sound_volume(self.attack, .5)
+        self.attack = self.sound_manager.sounds["attack"]
 
-        self.footstep_sound = load_sound("assets/audio/08_Step_rock_02.wav")
-        set_sound_volume(self.footstep_sound, .45)
+        self.footstep_sound = self.sound_manager.sounds["footstep_sound"]
         self.footstep_threshold = 64
         self.distance_moved = 0
 
-        self.hit_sound = load_sound("assets/audio/Sword Impact Hit 2.wav")
-        set_sound_pitch(self.hit_sound, .8)
-        set_sound_volume(self.hit_sound, .5)
+        self.hit_sound = self.sound_manager.sounds["hit_sound"]
 
     def take_damage(self, damage_amount, enemy_hitbox):
         self.health = max(0, self.health - damage_amount)  # take damage
@@ -137,13 +137,14 @@ class Player:
             self.knockback_direction = Vector2(0, 0) #fallback
 
         self.is_hurt = True
-        if self.health == 0:  # player died
-            self.state = playerState.DEAD  # set player state to dead
+        if self.health == 0:  
+            self.state = playerState.DEAD  
 
     def heal(self, n):
         self.health = min(self.max_health, self.health + n)
 
     def update(self, room: Room):
+
         if self.state == playerState.DEAD:
             self.handle_death()
 
@@ -158,7 +159,7 @@ class Player:
         self.update_animation()
 
     def draw(self):
-        # Get the movement animation source
+        
         source = self.current_animation.animation_frame_horizontal()
         origin = Vector2(0.0, 0.0)
 
@@ -177,6 +178,15 @@ class Player:
             else:
                 #draw sprite
                 draw_texture_pro(self.sprite, source, self.rect, origin, 0.0, color)
+
+            if hasattr(self, 'attacking') and self.attacking and self.attack_animation:
+                attack_source = self.attack_animation.animation_frame_horizontal()
+
+
+
+            # Draw hitboxes for debugging
+            #draw_rectangle_lines_ex(self.hitbox, 1, RED)
+            #draw_rectangle_lines_ex(self.rect, 1, RED)
 
     def handle_movement(self):
         if self.state == playerState.DEAD:
@@ -222,14 +232,13 @@ class Player:
         self.hitbox.x = self.rect.x + (self.rect.width - self.hitbox.width) / 2
         self.hitbox.y = self.rect.y + self.rect.height - self.hitbox.height - self.hitbox_offset
 
-        # foostep sound update
         self.distance_moved += vector2_length(Vector2(dx, dy))
         if self.distance_moved >= self.footstep_threshold:
             self.distance_moved = 0
-            play_sound(self.footstep_sound)
+            self.sound_manager.play_sound("footstep_sound")
 
     def update_animation(self):
-        if self.is_hurt: #only plays when player is hurt
+        if self.is_hurt:
             self.current_animation = self.animations[playerState.HURT]
         else:
             self.current_animation = self.animations[self.state]
@@ -242,9 +251,8 @@ class Player:
 
     def handle_death(self):
         # prevent movement
-        self.vel.x, self.vel.y = 0.0, 0.0  # Stop movement
+        self.vel.x, self.vel.y = 0.0, 0.0 
 
-        #change state to dead
         self.state = playerState.DEAD
         self.current_animation = self.animations[self.state]
 
@@ -261,7 +269,7 @@ class Player:
                 self.animations[self.attack_state].reset()
             return
 
-        # Handle attack initiation
+
         if self.attack_timer >= 0:
             self.attack_timer -= get_frame_time()
         elif is_key_down(KEY_LEFT):
@@ -281,47 +289,52 @@ class Player:
             self.attack_state = playerState.ATTACK_DOWN
             self.perform_attack(enemies, 'S')
 
+
     def perform_attack(self, enemies, dir):
         attack_rect = None
 
-        # Create attack rectangle based on direction
-        if dir == 'N':  # North/Up
+        
+        if dir == 'N': 
             attack_rect = Rectangle(
-                self.hitbox.x - self.attack_range/2 + self.hitbox.width/2,  # Centered horizontally
-                self.hitbox.y - self.attack_range,  # Above the player
-                self.hitbox.width + self.attack_range,  # Wider than player
-                self.attack_range  # Height = attack range
+                self.hitbox.x - self.attack_range/2 + self.hitbox.width/2,  
+                self.hitbox.y - self.attack_range,  
+                self.hitbox.width + self.attack_range,  
+                self.attack_range  
             )
-        elif dir == 'E':  # East/Right
+        elif dir == 'E':  
             attack_rect = Rectangle(
-                self.hitbox.x + self.hitbox.width,  # Right of player
-                self.hitbox.y - self.attack_range/2 + self.hitbox.height/2,  # Centered vertically
-                self.attack_range,  # Width = attack range
-                self.hitbox.height + self.attack_range  # Taller than player
+                self.hitbox.x + self.hitbox.width,  
+                self.hitbox.y - self.attack_range/2 + self.hitbox.height/2,  
+                self.attack_range,  
+                self.hitbox.height + self.attack_range  
             )
-        elif dir == 'S':  # South/Down
+        elif dir == 'S':  
             attack_rect = Rectangle(
-                self.hitbox.x - self.attack_range/2 + self.hitbox.width/2,  # Centered horizontally
-                self.hitbox.y + self.hitbox.height,  # Below the player
-                self.hitbox.width + self.attack_range,  # Wider than player
-                self.attack_range  # Height = attack range
+                self.hitbox.x - self.attack_range/2 + self.hitbox.width/2,  
+                self.hitbox.y + self.hitbox.height,  
+                self.hitbox.width + self.attack_range,  
+                self.attack_range  
             )
-        elif dir == 'W':  # West/Left
+        elif dir == 'W': 
             attack_rect = Rectangle(
-                self.hitbox.x - self.attack_range,  # Left of player
-                self.hitbox.y - self.attack_range/2 + self.hitbox.height/2,  # Centered vertically
-                self.attack_range,  # Width = attack range
-                self.hitbox.height + self.attack_range  # Taller than player
+                self.hitbox.x - self.attack_range,  
+                self.hitbox.y - self.attack_range/2 + self.hitbox.height/2,  
+                self.attack_range,  
+                self.hitbox.height + self.attack_range  
             )
 
         for enemy in enemies:
             if check_collision_recs(attack_rect, enemy.hitbox):
-                play_sound(self.hit_sound)
+                self.sound_manager.play_sound("hit_sound")
                 dir = direction_between_rects(self.hitbox, enemy.hitbox)
                 enemy.take_damage(self.dmg, dir)
 
     def increase_health(self, amount):
-        self.health = min(self.max_health, self.health + amount)
+        if self.max_health + amount <= self.absolute_health:
+            self.max_health += amount
+            self.health = min(self.health + 20, self.max_health)
+            return True
+        return False
 
     def increase_speed(self, amount):
         self.vel.x += amount

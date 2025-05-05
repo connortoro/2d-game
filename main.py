@@ -6,26 +6,23 @@ from enum import Enum
 import time
 import textures
 from config import *
-import sys
-import os
-sys.path.append(os.path.dirname(__file__))
+from sounds import SoundManager
 
 #Init
 init_window(W, H, "My Game")
+set_target_fps(1000)
 set_exit_key(0)
 init_audio_device()
 textures.load_textures()
 config = load_config()
-
-# Load background music
-music = load_music_stream("assets/audio/rpg-city-8381.mp3")
-play_music_stream(music)
+sound_manager = SoundManager(config)
+last_music_state = None
 
 #player stuff
 player_texture = load_texture("assets/player_sheet/player_spritesheet.png")
-player = Player(player_texture)
-playerui = PlayerUI(player, music, config)
-floor = Floor()
+player = Player(player_texture, sound_manager)
+playerui = PlayerUI(player, sound_manager, config)
+floor = Floor(sound_manager)
 
 # Game state enum
 class GameState(Enum):
@@ -41,24 +38,30 @@ previous_state = None #used to track last state (used for settings menu primaril
 def restart_game():
     global game_state, player, floor, playerui
     game_state = GameState.PLAYING
-    player = Player(player_texture)
-    floor = Floor()
-    playerui = PlayerUI(player, music, config)
+    player = Player(player_texture, sound_manager)
+    floor = Floor(sound_manager)
+    playerui = PlayerUI(player, sound_manager, config)
 
 
 def quit():
     unload_texture(player_texture)
-    unload_music_stream(music)  # Unload the music stream
+    unload_music_stream(sound_manager.current_music) 
     close_window()
 
 # Main game loop
 
 while not window_should_close():
+    if sound_manager.current_music:
+        update_music_stream(sound_manager.current_music)
+    
+    if game_state == GameState.MAIN_MENU and last_music_state != GameState.MAIN_MENU:
+        sound_manager.play_music("main_menu_music")
+        last_music_state = GameState.MAIN_MENU
 
-    # Update music stream if music is loaded
-    if music:
-        update_music_stream(music)
-    #pause/unpause button
+    elif game_state == GameState.PLAYING and last_music_state != GameState.PLAYING:
+        sound_manager.play_music("level_1_music")
+        last_music_state = GameState.PLAYING
+
     if is_key_pressed(KEY_ESCAPE):
         if game_state == GameState.PLAYING:
             game_state = GameState.PAUSED
@@ -66,31 +69,27 @@ while not window_should_close():
             game_state = GameState.PLAYING
         elif game_state == GameState.SETTINGS:
             game_state = GameState.PAUSED
-    # Drawing
     begin_drawing()
     clear_background(SKYBLUE)
 
-    if game_state == GameState.MAIN_MENU:
+    if game_state == GameState.MAIN_MENU :
         action = playerui.draw_main_menu()
         if action == "start":
             game_state = GameState.PLAYING
         elif action == "settings":
-            previous_state = game_state #stores current game state
+            previous_state = game_state 
             game_state = GameState.SETTINGS
         elif action == "quit":
             quit()
             close_window()
-
-        #prevents game from rendering in main menu (until player clicks play)
         end_drawing()
         continue
 
-    # Check for player death and update game state
+
     if game_state == GameState.PLAYING and player.health <= 0:
         game_over_timer = time.time()
         game_state = GameState.GAME_OVER
 
-    #allows animations in every state but paused and settings
     if game_state != GameState.PAUSED and game_state != GameState.SETTINGS:
         player.update(floor.get_current_room())
         floor.update(player)
@@ -98,6 +97,7 @@ while not window_should_close():
 
     floor.draw()
     player.draw()
+    playerui.draw_instructions()
     playerui.draw(floor)
 
     if game_state == GameState.PAUSED:
